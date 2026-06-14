@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Messenger - Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="chat-container">
+
+    <!-- Header chat -->
+    <div class="chat-header">
+      <button onclick="window.history.back()">⬅️</button>
+      <div class="chat-user-info">
+        <div class="avatar" id="chat-avatar">👤</div>
+        <span id="chat-username">...</span>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-container" id="messages-container">
+    </div>
+
+    <!-- Input message -->
+    <div class="message-input-area">
+      <input 
+        type="text" 
+        id="message-input" 
+        placeholder="Écrire un message..."
+      />
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+
+  </div>
+
+  <script type="module" src="chat.js"></script>
+</body>
+</html>

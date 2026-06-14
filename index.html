@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Messenger</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-container">
+    
+    <!-- Logo -->
+    <div class="logo">
+      <h1>💬 Link Messenger</h1>
+      <p>Connectez-vous avec le monde entier</p>
+    </div>
+
+    <!-- Onglets -->
+    <div class="tabs">
+      <button class="tab active" onclick="showLogin()">Connexion</button>
+      <button class="tab" onclick="showRegister()">Inscription</button>
+    </div>
+
+    <!-- Formulaire Connexion -->
+    <div id="login-form">
+      <input type="email" id="login-email" placeholder="Email" />
+      <input type="password" id="login-password" placeholder="Mot de passe" />
+      <button class="btn-primary" onclick="login()">Se connecter</button>
+      <p class="forgot" onclick="resetPassword()">Mot de passe oublié ?</p>
+    </div>
+
+    <!-- Formulaire Inscription -->
+    <div id="register-form" style="display:none">
+      <input type="text" id="register-username" placeholder="Nom d'utilisateur" />
+      <input type="email" id="register-email" placeholder="Email" />
+      <input type="password" id="register-password" placeholder="Mot de passe" />
+      <button class="btn-primary" onclick="register()">Créer mon compte</button>
+    </div>
+
+    <!-- Message d'erreur -->
+    <p id="error-msg" class="error"></p>
+
+  </div>
+
+  <script type="module" src="auth.js"></script>
+</body>
+</html>
