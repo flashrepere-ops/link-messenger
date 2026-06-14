@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, query, where, getDocs, onSnapshot, doc, getDoc, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let currentUser = null;
 
@@ -74,7 +74,7 @@ function loadConversations() {
 
   onSnapshot(q, async (snap) => {
     if (snap.empty) {
-      list.innerHTML = '<p style="padding:16px;color:#888">Aucune conversation pour l\'instant.<br>🔍 Cherche un ami !</p>';
+      list.innerHTML = '<p style="padding:16px;color:#888">Aucune conversation.<br>🔍 Cherche un ami !</p>';
       return;
     }
     list.innerHTML = '';
@@ -93,7 +93,7 @@ function loadConversations() {
           <span>${data.lastMessage || ''}</span>
         </div>
       `;
-      item.onclick = () => startChat(userData.uid, userData.username);
+      item.onclick = () => window.startChat(userData.uid, userData.username);
       list.appendChild(item);
     }
   });
