@@ -6,16 +6,13 @@ let currentUser = null;
 let convId = null;
 let otherUserId = null;
 
-// Récupérer paramètres URL
 const params = new URLSearchParams(window.location.search);
 convId = params.get('conv');
 otherUserId = params.get('user');
 const otherName = params.get('name');
 
-// Afficher nom
 document.getElementById('chat-username').textContent = otherName || '...';
 
-// Vérifier connexion
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = 'index.html';
@@ -25,7 +22,12 @@ onAuthStateChanged(auth, (user) => {
   loadMessages();
 });
 
-// Charger messages en temps réel
+function formatTime(timestamp) {
+  if (!timestamp) return '';
+  const date = timestamp.toDate();
+  return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+
 function loadMessages() {
   const container = document.getElementById('messages-container');
   const q = query(
@@ -40,19 +42,20 @@ function loadMessages() {
       const isMine = msg.senderId === currentUser.uid;
       const div = document.createElement('div');
       div.className = `message ${isMine ? 'mine' : 'theirs'}`;
-      div.textContent = msg.text;
+      div.innerHTML = `
+        <div class="msg-text">${msg.text}</div>
+        <div class="time">${formatTime(msg.createdAt)}</div>
+      `;
       container.appendChild(div);
     });
     container.scrollTop = container.scrollHeight;
   });
 }
 
-// Envoyer message
 window.sendMessage = async function() {
   const input = document.getElementById('message-input');
   const text = input.value.trim();
   if (!text) return;
-
   input.value = '';
 
   try {
@@ -73,7 +76,6 @@ window.sendMessage = async function() {
   }
 }
 
-// Envoyer avec Enter
 document.getElementById('message-input').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMessage();
 });
