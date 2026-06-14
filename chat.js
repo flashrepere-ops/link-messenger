@@ -11,7 +11,22 @@ convId = params.get('conv');
 otherUserId = params.get('user');
 const otherName = params.get('name');
 
-document.getElementById('chat-username').textContent = otherName || '...';
+const colors = ['#e53935','#8e24aa','#1e88e5','#00897b','#f4511e','#6d4c41','#00acc1','#43a047'];
+
+function getColor(name) {
+  let sum = 0;
+  for (let c of name) sum += c.charCodeAt(0);
+  return colors[sum % colors.length];
+}
+
+// Afficher nom et avatar
+const usernameEl = document.getElementById('chat-username');
+const avatarEl = document.getElementById('chat-avatar');
+if (otherName) {
+  usernameEl.textContent = otherName;
+  avatarEl.textContent = otherName.charAt(0).toUpperCase();
+  avatarEl.style.background = getColor(otherName);
+}
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
