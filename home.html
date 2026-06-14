@@ -8,26 +8,70 @@
 </head>
 <body>
 
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>💬 Link</h2>
-      <div class="header-icons">
-        <button onclick="showSearch()">🔍</button>
-        <button onclick="logout()">🚪</button>
-      </div>
-    </div>
+<div class="app">
 
-    <div id="search-box" style="display:none; padding:12px;">
-      <input type="text" id="search-input" placeholder="Email ou username..." />
-      <button class="btn-primary" onclick="searchUser()">Chercher</button>
-      <div id="search-result"></div>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="app-logo">💬</div>
+      <span class="app-name">Link Messenger</span>
     </div>
-
-    <div id="conversations-list">
-      <p style="padding:16px;color:#888">Chargement...</p>
+    <div class="header-right">
+      <button class="icon-btn" onclick="showSearch()">🔍</button>
+      <button class="icon-btn" onclick="logout()">⚙️</button>
     </div>
   </div>
 
-  <script type="module" src="home.js"></script>
+  <!-- BARRE DE RECHERCHE -->
+  <div id="search-box" style="display:none">
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" id="search-input" placeholder="Rechercher un utilisateur..." />
+    </div>
+    <button class="search-btn" onclick="searchUser()">Chercher</button>
+    <div id="search-result"></div>
+  </div>
+
+  <!-- ONGLETS -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab(this, 'all')">Toutes</button>
+    <button class="tab-btn" onclick="switchTab(this, 'unread')">Non lues</button>
+    <button class="tab-btn" onclick="switchTab(this, 'favorites')">Favoris</button>
+  </div>
+
+  <!-- LISTE DES CONVERSATIONS -->
+  <div class="conversations" id="conversations-list">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+  </div>
+
+  <!-- BOUTON NOUVEAU CHAT -->
+  <button class="fab" onclick="showSearch()">✏️</button>
+
+  <!-- BARRE DU BAS -->
+  <div class="bottom-nav">
+    <button class="nav-btn active">
+      <span>💬</span>
+      <span>Discussions</span>
+    </button>
+    <button class="nav-btn">
+      <span>📞</span>
+      <span>Appels</span>
+    </button>
+    <button class="nav-btn">
+      <span>🔵</span>
+      <span>Statuts</span>
+    </button>
+    <button class="nav-btn">
+      <span>⚙️</span>
+      <span>Outils</span>
+    </button>
+  </div>
+
+</div>
+
+<script type="module" src="home.js"></script>
 </body>
 </html>
