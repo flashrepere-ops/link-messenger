@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Link Messenger - Chat</title>
+  <title>Link Messenger</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,27 +12,33 @@
 
   <!-- HEADER -->
   <div class="chat-header">
-    <button onclick="window.history.back()">⬅️</button>
-    <div class="chat-user-info">
-      <div class="avatar" id="chat-avatar" style="width:38px;height:38px;font-size:16px;margin-right:0">?</div>
-      <div>
-        <div id="chat-username" style="font-weight:600;color:#e9edef">...</div>
-        <div style="font-size:12px;color:#8696a0">en ligne</div>
-      </div>
+    <button class="back-btn" onclick="window.history.back()">←</button>
+    <div class="chat-avatar-header" id="chat-avatar">?</div>
+    <div class="chat-header-info">
+      <div class="chat-username" id="chat-username">...</div>
+      <div class="chat-status">en ligne</div>
+    </div>
+    <div class="chat-header-icons">
+      <button class="chat-icon-btn">📹</button>
+      <button class="chat-icon-btn">📞</button>
+      <button class="chat-icon-btn">⋮</button>
     </div>
   </div>
 
   <!-- MESSAGES -->
   <div class="messages-container" id="messages-container"></div>
 
-  <!-- INPUT -->
+  <!-- BARRE D'INPUT -->
   <div class="message-input-area">
+    <button class="input-icon-btn">😊</button>
     <input
       type="text"
       id="message-input"
-      placeholder="Écrire un message..."
+      placeholder="Message"
     />
-    <button class="send-btn" onclick="sendMessage()">➤</button>
+    <button class="input-icon-btn">📎</button>
+    <button class="input-icon-btn">📷</button>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">🎤</button>
   </div>
 
 </div>
