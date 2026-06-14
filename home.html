@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Messenger - Accueil</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Barre latérale -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>💬 Link</h2>
+        <div class="header-icons">
+          <button onclick="showSearch()">🔍</button>
+          <button onclick="logout()">🚪</button>
+        </div>
+      </div>
+
+      <!-- Recherche -->
+      <div id="search-box" style="display:none">
+        <input type="text" id="search-input" placeholder="Email ou username..." />
+        <button class="btn-primary" onclick="searchUser()">Chercher</button>
+        <div id="search-result"></div>
+      </div>
+
+      <!-- Liste conversations -->
+      <div id="conversations-list"></div>
+    </div>
+
+    <!-- Zone chat -->
+    <div class="chat-area" id="chat
