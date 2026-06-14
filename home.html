@@ -3,33 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Link Messenger - Accueil</title>
+  <title>Link Messenger</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="app-container">
-
-    <!-- Barre latérale -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <h2>💬 Link</h2>
-        <div class="header-icons">
-          <button onclick="showSearch()">🔍</button>
-          <button onclick="logout()">🚪</button>
-        </div>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>💬 Link</h2>
+      <div class="header-icons">
+        <button onclick="showSearch()">🔍</button>
+        <button onclick="logout()">🚪</button>
       </div>
-
-      <!-- Recherche -->
-      <div id="search-box" style="display:none">
-        <input type="text" id="search-input" placeholder="Email ou username..." />
-        <button class="btn-primary" onclick="searchUser()">Chercher</button>
-        <div id="search-result"></div>
-      </div>
-
-      <!-- Liste conversations -->
-      <div id="conversations-list"></div>
     </div>
 
-    <!-- Zone chat -->
-    <div class="chat-area" id="chat
+    <div id="search-box" style="display:none; padding:12px;">
+      <input type="text" id="search-input" placeholder="Email ou username..." />
+      <button class="btn-primary" onclick="searchUser()">Chercher</button>
+      <div id="search-result"></div>
+    </div>
+
+    <div id="conversations-list">
+      <p style="padding:16px;color:#888">Chargement...</p>
+    </div>
+  </div>
+
+  <script type="module" src="home.js"></script>
+</body>
+</html>
