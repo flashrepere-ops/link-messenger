@@ -760,4 +760,71 @@ input:focus {
 .toggle-item {
   flex-direction: row !important;
   justify-content: space-between;
-  align-
+  align-/* EMOJI PICKER */
+.emoji-picker {
+  position: fixed;
+  bottom: 68px;
+  left: 0;
+  right: 0;
+  background: #202c33;
+  border-top: 1px solid #2a3942;
+  z-index: 999;
+  max-height: 250px;
+  display: flex;
+  flex-direction: column;
+}
+
+.emoji-categories {
+  display: flex;
+  padding: 8px;
+  gap: 4px;
+  border-bottom: 1px solid #2a3942;
+  overflow-x: auto;
+}
+
+.emoji-categories::-webkit-scrollbar {
+  display: none;
+}
+
+.emoji-cat {
+  background: none;
+  border: none;
+  font-size: 22px;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.emoji-cat.active {
+  background: #2a3942;
+}
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 8px;
+  gap: 4px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.emoji-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-btn:hover {
+  background: #2a3942;
+}
