@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let currentUser = null;
 let convId = null;
@@ -22,10 +22,34 @@ function getColor(name) {
 // Afficher nom et avatar
 const usernameEl = document.getElementById('chat-username');
 const avatarEl = document.getElementById('chat-avatar');
+
 if (otherName) {
   usernameEl.textContent = otherName;
   avatarEl.textContent = otherName.charAt(0).toUpperCase();
   avatarEl.style.background = getColor(otherName);
+}
+
+// Charger la vraie photo de profil de l'autre utilisateur
+async function loadOtherUserProfile() {
+  if (!otherUserId) return;
+  try {
+    const userSnap = await getDoc(doc(db, 'users', otherUserId));
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      if (userData.avatar) {
+        avatarEl.style.backgroundImage = `url('${userData.avatar}')`;
+        avatarEl.style.backgroundSize = 'cover';
+        avatarEl.style.backgroundPosition = 'center';
+        avatarEl.textContent = '';
+      } else {
+        avatarEl.textContent = userData.username.charAt(0).toUpperCase();
+        avatarEl.style.background = getColor(userData.username);
+      }
+      usernameEl.textContent = userData.username;
+    }
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 onAuthStateChanged(auth, (user) => {
@@ -34,6 +58,7 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
   currentUser = user;
+  loadOtherUserProfile();
   loadMessages();
 });
 
@@ -67,7 +92,6 @@ function loadMessages() {
   });
 }
 
-// Envoyer message
 async function doSend() {
   const input = document.getElementById('message-input');
   const text = input.value.trim();
@@ -95,7 +119,6 @@ async function doSend() {
 
 window.sendMessage = doSend;
 
-// Bouton micro ↔ envoi
 function updateSendBtn(value) {
   const btn = document.getElementById('send-btn');
   if (value.trim()) {
@@ -107,7 +130,6 @@ function updateSendBtn(value) {
   }
 }
 
-// Input
 const input = document.getElementById('message-input');
 
 input.addEventListener('input', (e) => {
@@ -118,5 +140,4 @@ input.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') doSend();
 });
 
-// Init bouton
 updateSendBtn('');

@@ -31,12 +31,40 @@ function timeAgo(timestamp) {
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
 }
 
+function createAvatar(user) {
+  if (user.avatar) {
+    return `<div class="avatar" style="background-image:url('${user.avatar}');background-size:cover;background-position:center"></div>`;
+  }
+  const color = getColor(user.username);
+  const initials = getInitials(user.username);
+  return `<div class="avatar" style="background:${color}">${initials}</div>`;
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = 'index.html';
     return;
   }
   currentUser = user;
+
+  // Charger photo de profil dans le header
+  const userSnap = await getDoc(doc(db, 'users', user.uid));
+  if (userSnap.exists()) {
+    const userData = userSnap.data();
+    const headerAvatar = document.getElementById('header-avatar');
+    if (headerAvatar) {
+      if (userData.avatar) {
+        headerAvatar.style.backgroundImage = `url('${userData.avatar}')`;
+        headerAvatar.style.backgroundSize = 'cover';
+        headerAvatar.style.backgroundPosition = 'center';
+        headerAvatar.textContent = '';
+      } else {
+        headerAvatar.textContent = getInitials(userData.username);
+        headerAvatar.style.background = getColor(userData.username);
+      }
+    }
+  }
+
   loadConversations();
 });
 
@@ -55,6 +83,56 @@ window.showSearch = function() {
 window.switchTab = function(btn, tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  filterConversations(tab);
+}
+
+let allConvs = [];
+
+function filterConversations(tab) {
+  const list = document.getElementById('conversations-list');
+  let filtered = allConvs;
+
+  if (tab === 'unread') {
+    filtered = allConvs.filter(c => c.unread > 0);
+  } else if (tab === 'favorites') {
+    filtered = allConvs.filter(c => c.favorite);
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:40px;color:#8696a0">
+        <div style="font-size:48px;margin-bottom:16px">💬</div>
+        <p style="font-size:16px">Aucune conversation</p>
+      </div>
+    `;
+    return;
+  }
+
+  renderConversations(filtered);
+}
+
+function renderConversations(convs) {
+  const list = document.getElementById('conversations-list');
+  list.innerHTML = '';
+  for (const c of convs) {
+    const item = document.createElement('div');
+    item.className = 'conv-item';
+    item.innerHTML = `
+      ${createAvatar(c.otherUser)}
+      <div class="conv-info">
+        <div class="conv-top">
+          <span class="conv-name">${c.otherUser.username}</span>
+          <span class="conv-time">${timeAgo(c.updatedAt)}</span>
+        </div>
+        <div class="conv-bottom">
+          <span class="conv-last-msg">${c.lastMessage || 'Démarrer la discussion'}</span>
+          ${c.unread > 0 ? `<span class="badge">${c.unread}</span>` : ''}
+        </div>
+      </div>
+    `;
+    item.onclick = () => window.startChat(c.otherUser.uid, c.otherUser.username);
+    list.appendChild(item);
+  }
 }
 
 window.searchUser = async function() {
@@ -81,12 +159,10 @@ window.searchUser = async function() {
       resultDiv.innerHTML = '<p style="color:#f15c6d;padding:8px">C\'est toi-même !</p>';
       return;
     }
-    const color = getColor(userData.username);
-    const initials = getInitials(userData.username);
     resultDiv.innerHTML = `
       <div class="user-result">
         <div style="display:flex;align-items:center;gap:10px">
-          <div class="avatar" style="background:${color};width:40px;height:40px;font-size:16px">${initials}</div>
+          ${createAvatar(userData)}
           <div>
             <div style="color:#e9edef;font-weight:600">${userData.username}</div>
             <div style="color:#8696a0;font-size:12px">${userData.email}</div>
@@ -128,37 +204,16 @@ function loadConversations() {
       return;
     }
 
-    const convs = [];
+    allConvs = [];
     for (const d of snap.docs) {
       const data = d.data();
       const otherUid = data.participants.find(p => p !== currentUser.uid);
       const userSnap = await getDoc(doc(db, 'users', otherUid));
       if (!userSnap.exists()) continue;
-      convs.push({ id: d.id, ...data, otherUser: userSnap.data() });
+      allConvs.push({ id: d.id, ...data, otherUser: userSnap.data() });
     }
 
-    convs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
-
-    list.innerHTML = '';
-    for (const c of convs) {
-      const color = getColor(c.otherUser.username);
-      const initials = getInitials(c.otherUser.username);
-      const item = document.createElement('div');
-      item.className = 'conv-item';
-      item.innerHTML = `
-        <div class="avatar" style="background:${color}">${initials}</div>
-        <div class="conv-info">
-          <div class="conv-top">
-            <span class="conv-name">${c.otherUser.username}</span>
-            <span class="conv-time">${timeAgo(c.updatedAt)}</span>
-          </div>
-          <div class="conv-bottom">
-            <span class="conv-last-msg">${c.lastMessage || 'Démarrer la discussion'}</span>
-          </div>
-        </div>
-      `;
-      item.onclick = () => window.startChat(c.otherUser.uid, c.otherUser.username);
-      list.appendChild(item);
-    }
+    allConvs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+    renderConversations(allConvs);
   });
 }
