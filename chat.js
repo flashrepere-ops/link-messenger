@@ -73,26 +73,17 @@ function loadMessages() {
     orderBy('createdAt', 'asc')
   );
 
-  onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+  onSnapshot(q, (snap) => {
     container.innerHTML = '';
     snap.forEach((d) => {
       const msg = d.data();
       const isMine = msg.senderId === currentUser.uid;
       const div = document.createElement('div');
       div.className = `message ${isMine ? 'mine' : 'theirs'}`;
-
-      if (msg.image) {
-        div.innerHTML = `
-          <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
-          <div class="time">${formatTime(msg.createdAt)}</div>
-        `;
-      } else {
-        div.innerHTML = `
-          <div class="msg-text">${msg.text}</div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
-        `;
-      }
-
+      div.innerHTML = `
+        <div class="msg-text">${msg.text}</div>
+        <div class="time">${formatTime(msg.createdAt)}</div>
+      `;
       container.appendChild(div);
     });
     container.scrollTop = container.scrollHeight;
@@ -162,4 +153,59 @@ const emojiData = {
 
 window.toggleEmoji = function() {
   const picker = document.getElementById('emoji-picker');
-  picker.style
+  picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+  if (picker.style.display === 'block') {
+    showEmojiCat(document.querySelector('.emoji-cat.active'), 'smileys');
+  }
+}
+
+window.showEmojiCat = function(btn, cat) {
+  document.querySelectorAll('.emoji-cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = '';
+  emojiData[cat].forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn';
+    btn.textContent = emoji;
+    btn.onclick = () => {
+      const input = document.getElementById('message-input');
+      input.value += emoji;
+      input.focus();
+      updateSendBtn(input.value);
+    };
+    grid.appendChild(btn);
+  });
+}
+
+window.openCamera = function() {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.capture = 'environment';
+  fileInput.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentUser) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const imageData = ev.target.result;
+      try {
+        await addDoc(collection(db, 'conversations', convId, 'messages'), {
+          text: '',
+          image: imageData,
+          senderId: currentUser.uid,
+          createdAt: serverTimestamp()
+        });
+        await setDoc(doc(db, 'conversations', convId), {
+          participants: [currentUser.uid, otherUserId],
+          lastMessage: '📷 Photo',
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch(e) {
+        console.error(e);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  fileInput.click();
+}
