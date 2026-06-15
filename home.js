@@ -40,11 +40,9 @@ onAuthStateChanged(auth, async (user) => {
   loadConversations();
 });
 
-window.logout = async function() {
-  if (confirm('Se déconnecter ?')) {
-    await signOut(auth);
-    window.location.href = 'index.html';
-  }
+// ⚙️ Ouvre les paramètres
+window.logout = function() {
+  window.location.href = 'settings.html';
 }
 
 window.showSearch = function() {
@@ -128,41 +126,3 @@ function loadConversations() {
           <p style="font-size:16px;margin-bottom:8px">Aucune conversation</p>
           <p style="font-size:13px">Appuie sur ✏️ pour démarrer une discussion</p>
         </div>
-      `;
-      return;
-    }
-
-    const convs = [];
-    for (const d of snap.docs) {
-      const data = d.data();
-      const otherUid = data.participants.find(p => p !== currentUser.uid);
-      const userSnap = await getDoc(doc(db, 'users', otherUid));
-      if (!userSnap.exists()) continue;
-      convs.push({ id: d.id, ...data, otherUser: userSnap.data() });
-    }
-
-    convs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
-
-    list.innerHTML = '';
-    for (const c of convs) {
-      const color = getColor(c.otherUser.username);
-      const initials = getInitials(c.otherUser.username);
-      const item = document.createElement('div');
-      item.className = 'conv-item';
-      item.innerHTML = `
-        <div class="avatar" style="background:${color}">${initials}</div>
-        <div class="conv-info">
-          <div class="conv-top">
-            <span class="conv-name">${c.otherUser.username}</span>
-            <span class="conv-time">${timeAgo(c.updatedAt)}</span>
-          </div>
-          <div class="conv-bottom">
-            <span class="conv-last-msg">${c.lastMessage || 'Démarrer la discussion'}</span>
-          </div>
-        </div>
-      `;
-      item.onclick = () => window.startChat(c.otherUser.uid, c.otherUser.username);
-      list.appendChild(item);
-    }
-  });
-}
