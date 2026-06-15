@@ -350,6 +350,19 @@ input:focus {
   max-width: 220px;
 }
 
+.badge {
+  background: #00a884;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
 .fab {
   position: fixed;
   bottom: 80px;
@@ -402,12 +415,16 @@ input:focus {
 
 /* CHAT PAGE */
 .chat-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  background: #efeae2;
   max-width: 480px;
   margin: 0 auto;
-  background: #efeae2;
 }
 
 .chat-header {
@@ -582,47 +599,118 @@ input:focus {
   justify-content: center;
 }
 
-.send-btn:hover { background: #054d44; }/* FIX BARRE MESSAGE */
-.chat-container {
-  position: fixed !important;
-  top: 0;
+.send-btn:hover { background: #054d44; }
+
+/* EMOJI PICKER */
+.emoji-picker {
+  position: fixed;
+  bottom: 68px;
   left: 0;
   right: 0;
-  bottom: 0;
+  background: #202c33;
+  border-top: 1px solid #2a3942;
+  z-index: 999;
+  max-height: 250px;
   display: flex;
   flex-direction: column;
 }
 
-.messages-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 16px;
-}
-
-.message-input-area {
-  position: fixed !important;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.emoji-categories {
   display: flex;
-  padding: 8px 10px;
-  background: #f0f2f5;
-  gap: 8px;
-  align-items: center;
-  border-top: 1px solid #ddd;
-  z-index: 999;
+  padding: 8px;
+  gap: 4px;
+  border-bottom: 1px solid #2a3942;
+  overflow-x: auto;
 }
 
-.message-input-area input {
-  flex: 1;
-  margin-bottom: 0 !important;
-  border-radius: 24px;
-  background: white;
+.emoji-categories::-webkit-scrollbar { display: none; }
+
+.emoji-cat {
+  background: none;
   border: none;
+  font-size: 22px;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.emoji-cat.active { background: #2a3942; }
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 8px;
+  gap: 4px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.emoji-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-btn:hover { background: #2a3942; }
+
+/* MESSAGES VOCAUX */
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 10px 16px;
-  color: #111;
-  font-size: 15px;
-}/* SETTINGS */
+  background: #202c33;
+  border-top: 1px solid #2a3942;
+  color: #e9edef;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.recording-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f15c6d;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.recording-indicator button {
+  background: none;
+  border: none;
+  color: #f15c6d;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.audio-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.audio-message audio {
+  max-width: 200px;
+  height: 36px;
+}
+
+/* SETTINGS */
 .settings-container {
   max-width: 480px;
   margin: 0 auto;
@@ -745,130 +833,153 @@ input:focus {
   transition: background 0.2s;
 }
 
-.settings-btn:hover {
-  background: #017561;
-}
+.settings-btn:hover { background: #017561; }
 
 .settings-btn.danger {
   background: #f15c6d;
 }
 
-.settings-btn.danger:hover {
-  background: #c0392b;
-}
+.settings-btn.danger:hover { background: #c0392b; }
 
 .toggle-item {
   flex-direction: row !important;
   justify-content: space-between;
-  align-/* EMOJI PICKER */
-.emoji-picker {
-  position: fixed;
-  bottom: 68px;
-  left: 0;
-  right: 0;
-  background: #202c33;
-  border-top: 1px solid #2a3942;
-  z-index: 999;
-  max-height: 250px;
+  align-items: center;
+}
+
+.toggle-item span {
+  color: #e9edef;
+  font-size: 15px;
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #2a3942;
+  border-radius: 26px;
+  transition: 0.3s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+input:checked + .slider { background: #00a884; }
+input:checked + .slider:before { transform: translateX(22px); }
+
+.settings-msg {
+  text-align: center;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* PAGE APPEL */
+.call-container {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  background: #111b21;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-.emoji-categories {
+.call-header {
   display: flex;
-  padding: 8px;
-  gap: 4px;
-  border-bottom: 1px solid #2a3942;
-  overflow-x: auto;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 16px;
+  background: #202c33;
 }
 
-.emoji-categories::-webkit-scrollbar {
-  display: none;
-}
-
-.emoji-cat {
-  background: none;
-  border: none;
-  font-size: 22px;
-  padding: 6px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-
-.emoji-cat.active {
-  background: #2a3942;
-}
-
-.emoji-grid {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 8px;
-  gap: 4px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.emoji-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  padding: 6px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 42px;
-  height: 42px;
+.call-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #00a884;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
 }
 
-.emoji-btn:hover {
-  background: #2a3942;
-}/* MESSAGES VOCAUX */
-.recording-indicator {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  background: #202c33;
-  border-top: 1px solid #2a3942;
-  color: #e9edef;
-  font-size: 14px;
-}
+.call-info { flex: 1; }
 
-.recording-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #f15c6d;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.recording-indicator button {
-  background: none;
-  border: none;
-  color: #f15c6d;
+.call-username {
   font-size: 18px;
-  cursor: pointer;
-  margin-left: auto;
+  font-weight: 600;
+  color: #e9edef;
 }
 
-/* MESSAGES AUDIO */
-.audio-message {
+.call-status {
+  font-size: 13px;
+  color: #00a884;
+  margin-top: 4px;
+}
+
+.call-video-area {
+  flex: 1;
+  background: #0b141a;
+  overflow: hidden;
+}
+
+.call-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 16px;
+  background: #202c33;
+}
+
+.call-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  transition: transform 0.2s;
 }
 
-.audio-message audio {
-  max-width: 200px;
-  height: 36px;
+.call-btn:hover { transform: scale(1.1); }
+.mute-btn { background: #2a3942; }
+
+.end-btn {
+  background: #f15c6d;
+  width: 70px;
+  height: 70px;
+  font-size: 28px;
 }
+
+.video-btn { background: #2a3942; }
