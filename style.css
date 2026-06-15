@@ -827,4 +827,48 @@ input:focus {
 
 .emoji-btn:hover {
   background: #2a3942;
+}/* MESSAGES VOCAUX */
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #202c33;
+  border-top: 1px solid #2a3942;
+  color: #e9edef;
+  font-size: 14px;
+}
+
+.recording-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f15c6d;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.recording-indicator button {
+  background: none;
+  border: none;
+  color: #f15c6d;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+/* MESSAGES AUDIO */
+.audio-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.audio-message audio {
+  max-width: 200px;
+  height: 36px;
 }
