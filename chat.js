@@ -67,11 +67,13 @@ function loadMessages() {
   });
 }
 
-window.sendMessage = async function() {
+// Envoyer message
+async function doSend() {
   const input = document.getElementById('message-input');
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || !currentUser) return;
   input.value = '';
+  updateSendBtn('');
 
   try {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
@@ -91,6 +93,30 @@ window.sendMessage = async function() {
   }
 }
 
-document.getElementById('message-input').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendMessage();
+window.sendMessage = doSend;
+
+// Bouton micro ↔ envoi
+function updateSendBtn(value) {
+  const btn = document.getElementById('send-btn');
+  if (value.trim()) {
+    btn.textContent = '➤';
+    btn.onclick = doSend;
+  } else {
+    btn.textContent = '🎤';
+    btn.onclick = null;
+  }
+}
+
+// Input
+const input = document.getElementById('message-input');
+
+input.addEventListener('input', (e) => {
+  updateSendBtn(e.target.value);
 });
+
+input.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') doSend();
+});
+
+// Init bouton
+updateSendBtn('');
