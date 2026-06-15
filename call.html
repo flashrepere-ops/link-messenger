@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appel - Link Messenger</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/@daily-co/daily-js"></script>
+</head>
+<body>
+
+<div class="call-container">
+
+  <!-- HEADER -->
+  <div class="call-header">
+    <div class="call-avatar" id="call-avatar">?</div>
+    <div class="call-info">
+      <div class="call-username" id="call-username">...</div>
+      <div class="call-status" id="call-status">Connexion...</div>
+    </div>
+  </div>
+
+  <!-- VIDEO -->
+  <div class="call-video-area">
+    <div id="daily-call-frame" style="width:100%;height:100%"></div>
+  </div>
+
+  <!-- BOUTONS -->
+  <div class="call-controls">
+    <button class="call-btn mute-btn" id="mute-btn" onclick="toggleMute()">🎤</button>
+    <button class="call-btn end-btn" onclick="endCall()">📵</button>
+    <button class="call-btn video-btn" id="video-btn" onclick="toggleVideo()">📹</button>
+  </div>
+
+</div>
+
+<script type="module" src="call.js"></script>
+</body>
+</html>

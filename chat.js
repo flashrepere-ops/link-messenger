@@ -209,6 +209,21 @@ window.cancelRecording = function() {
   }
 }
 
+// APPELS
+window.startAudioCall = function() {
+  if (!currentUser || !otherUserId) return;
+  const ids = [currentUser.uid, otherUserId].sort();
+  const roomName = 'call-' + ids.join('-').substring(0, 20);
+  window.location.href = `call.html?user=${otherUserId}&name=${encodeURIComponent(otherName)}&type=audio&room=${roomName}`;
+}
+
+window.startVideoCall = function() {
+  if (!currentUser || !otherUserId) return;
+  const ids = [currentUser.uid, otherUserId].sort();
+  const roomName = 'call-' + ids.join('-').substring(0, 20);
+  window.location.href = `call.html?user=${otherUserId}&name=${encodeURIComponent(otherName)}&type=video&room=${roomName}`;
+}
+
 window.sendMessage = doSend;
 
 function updateSendBtn(value) {
@@ -232,7 +247,6 @@ input.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') doSend();
 });
 
-// Bouton envoi/micro
 const sendBtn = document.getElementById('send-btn');
 sendBtn.addEventListener('click', () => {
   const text = document.getElementById('message-input').value.trim();
