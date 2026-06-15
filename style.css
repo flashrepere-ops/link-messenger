@@ -622,4 +622,142 @@ input:focus {
   padding: 10px 16px;
   color: #111;
   font-size: 15px;
+}/* SETTINGS */
+.settings-container {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #111b21;
+  padding-bottom: 40px;
 }
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: #202c33;
+  color: #e9edef;
+  font-size: 18px;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.settings-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 16px;
+  background: #202c33;
+  margin-bottom: 8px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #00a884;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e9edef;
+}
+
+.profile-status {
+  font-size: 13px;
+  color: #8696a0;
+  margin-top: 4px;
+}
+
+.settings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 20px;
+}
+
+.settings-section {
+  background: #202c33;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #00a884;
+  margin-bottom: 4px;
+}
+
+.settings-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-item label {
+  font-size: 13px;
+  color: #8696a0;
+}
+
+.settings-item input[type="text"],
+.settings-item input[type="password"] {
+  background: #2a3942;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e9edef;
+  font-size: 15px;
+  margin-bottom: 0;
+}
+
+.settings-item input[type="file"] {
+  background: none;
+  border: none;
+  color: #8696a0;
+  font-size: 13px;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-btn {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #00a884;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.settings-btn:hover {
+  background: #017561;
+}
+
+.settings-btn.danger {
+  background: #f15c6d;
+}
+
+.settings-btn.danger:hover {
+  background: #c0392b;
+}
+
+.toggle-item {
+  flex-direction: row !important;
+  justify-content: space-between;
+  align-

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres - Link Messenger</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="settings-container">
+
+  <!-- HEADER -->
+  <div class="settings-header">
+    <button class="back-btn" onclick="window.history.back()">←</button>
+    <span>Paramètres</span>
+  </div>
+
+  <!-- PROFIL -->
+  <div class="settings-profile">
+    <div class="profile-avatar" id="profile-avatar">?</div>
+    <div class="profile-info">
+      <div class="profile-name" id="profile-name">Chargement...</div>
+      <div class="profile-status" id="profile-status">Hey, j'utilise Link Messenger !</div>
+    </div>
+  </div>
+
+  <!-- SECTIONS -->
+  <div class="settings-sections">
+
+    <!-- Profil -->
+    <div class="settings-section">
+      <div class="section-title">👤 Profil</div>
+      <div class="settings-item">
+        <label>Nom d'utilisateur</label>
+        <input type="text" id="new-username" placeholder="Nouveau nom..." />
+      </div>
+      <div class="settings-item">
+        <label>Statut</label>
+        <input type="text" id="new-status" placeholder="Mon statut..." />
+      </div>
+      <div class="settings-item">
+        <label>Photo de profil</label>
+        <input type="file" id="avatar-file" accept="image/*" />
+      </div>
+      <button class="settings-btn" onclick="saveProfile()">💾 Sauvegarder le profil</button>
+    </div>
+
+    <!-- Sécurité -->
+    <div class="settings-section">
+      <div class="section-title">🔒 Compte & Sécurité</div>
+      <div class="settings-item">
+        <label>Nouveau mot de passe</label>
+        <input type="password" id="new-password" placeholder="Nouveau mot de passe..." />
+      </div>
+      <button class="settings-btn" onclick="changePassword()">🔑 Changer le mot de passe</button>
+      <button class="settings-btn danger" onclick="deleteAccount()">🗑️ Supprimer mon compte</button>
+    </div>
+
+    <!-- Thème -->
+    <div class="settings-section">
+      <div class="section-title">🎨 Discussions</div>
+      <div class="settings-item toggle-item">
+        <span>Mode sombre</span>
+        <label class="toggle">
+          <input type="checkbox" id="dark-mode-toggle" onchange="toggleTheme()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="settings-section">
+      <div class="section-title">🔔 Notifications</div>
+      <div class="settings-item toggle-item">
+        <span>Sons activés</span>
+        <label class="toggle">
+          <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="settings-item toggle-item">
+        <span>Alertes activées</span>
+        <label class="toggle">
+          <input type="checkbox" id="notif-toggle" checked onchange="toggleNotif()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Déconnexion -->
+    <div class="settings-section">
+      <button class="settings-btn danger" onclick="logout()">🚪 Se déconnecter</button>
+    </div>
+
+  </div>
+
+  <div id="settings-msg" class="settings-msg"></div>
+
+</div>
+
+<script type="module" src="settings.js"></script>
+</body>
+</html>
