@@ -25,19 +25,32 @@
     </div>
   </div>
 
+  <!-- SÉLECTEUR EMOJIS -->
+  <div class="emoji-picker" id="emoji-picker" style="display:none">
+    <div class="emoji-categories">
+      <button class="emoji-cat active" onclick="showEmojiCat(this, 'smileys')">😊</button>
+      <button class="emoji-cat" onclick="showEmojiCat(this, 'gestures')">👋</button>
+      <button class="emoji-cat" onclick="showEmojiCat(this, 'hearts')">❤️</button>
+      <button class="emoji-cat" onclick="showEmojiCat(this, 'animals')">🐶</button>
+      <button class="emoji-cat" onclick="showEmojiCat(this, 'food')">🍕</button>
+      <button class="emoji-cat" onclick="showEmojiCat(this, 'travel')">✈️</button>
+      <button class="emoji-cat" onclick="showEmojiCat(this, 'symbols')">💯</button>
+    </div>
+    <div class="emoji-grid" id="emoji-grid"></div>
+  </div>
+
   <!-- MESSAGES -->
   <div class="messages-container" id="messages-container"></div>
 
   <!-- BARRE D'INPUT -->
   <div class="message-input-area">
-    <button class="input-icon-btn">😊</button>
+    <button class="input-icon-btn" onclick="toggleEmoji()">😊</button>
     <input
       type="text"
       id="message-input"
       placeholder="Message"
     />
-    <button class="input-icon-btn">📎</button>
-    <button class="input-icon-btn">📷</button>
+    <button class="input-icon-btn" onclick="openCamera()">📷</button>
     <button class="send-btn" id="send-btn" onclick="sendMessage()">🎤</button>
   </div>
 
