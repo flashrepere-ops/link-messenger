@@ -182,7 +182,6 @@ window.openCamera = function() {
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = 'image/*';
-  fileInput.capture = 'environment';
   fileInput.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
@@ -191,7 +190,7 @@ window.openCamera = function() {
       const imageData = ev.target.result;
       try {
         await addDoc(collection(db, 'conversations', convId, 'messages'), {
-          text: '',
+          text: '📷 Photo',
           image: imageData,
           senderId: currentUser.uid,
           createdAt: serverTimestamp()
@@ -208,51 +207,4 @@ window.openCamera = function() {
     reader.readAsDataURL(file);
   };
   fileInput.click();
-}// MESSAGES VOCAUX
-let mediaRecorder = null;
-let audioChunks = [];
-let isRecording = false;
-
-const sendBtn = document.getElementById('send-btn');
-
-sendBtn.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  const inputVal = document.getElementById('message-input').value.trim();
-  if (!inputVal) {
-    startRecording();
-  }
-});
-
-sendBtn.addEventListener('touchend', (e) => {
-  e.preventDefault();
-  if (isRecording) {
-    stopRecording();
-  }
-});
-
-async function startRecording() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    isRecording = true;
-
-    document.getElementById('recording-indicator').style.display = 'flex';
-    sendBtn.style.background = '#f15c6d';
-
-    mediaRecorder.ondataavailable = (e) => {
-      audioChunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const audioData = ev.target.result;
-        try {
-          await addDoc(collection(db, 'conversations', convId, 'messages'), {
-            text: '',
-            audio: audioData,
-            senderId: currentUser.uid,
-            createdAt: serverTimestamp()
-          });
+}
