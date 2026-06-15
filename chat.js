@@ -5,6 +5,9 @@ import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc, se
 let currentUser = null;
 let convId = null;
 let otherUserId = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
 
 const params = new URLSearchParams(window.location.search);
 convId = params.get('conv');
@@ -80,10 +83,26 @@ function loadMessages() {
       const isMine = msg.senderId === currentUser.uid;
       const div = document.createElement('div');
       div.className = `message ${isMine ? 'mine' : 'theirs'}`;
-      div.innerHTML = `
-        <div class="msg-text">${msg.text}</div>
-        <div class="time">${formatTime(msg.createdAt)}</div>
-      `;
+
+      if (msg.audio) {
+        div.innerHTML = `
+          <div class="audio-message">
+            <audio controls src="${msg.audio}"></audio>
+          </div>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else if (msg.image) {
+        div.innerHTML = `
+          <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="msg-text">${msg.text}</div>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      }
+
       container.appendChild(div);
     });
     container.scrollTop = container.scrollHeight;
@@ -115,6 +134,81 @@ async function doSend() {
   }
 }
 
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    isRecording = true;
+
+    const indicator = document.getElementById('recording-indicator');
+    if (indicator) indicator.style.display = 'flex';
+
+    const btn = document.getElementById('send-btn');
+    btn.textContent = '⏹';
+    btn.style.background = '#f15c6d';
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          await addDoc(collection(db, 'conversations', convId, 'messages'), {
+            text: '',
+            audio: ev.target.result,
+            senderId: currentUser.uid,
+            createdAt: serverTimestamp()
+          });
+          await setDoc(doc(db, 'conversations', convId), {
+            participants: [currentUser.uid, otherUserId],
+            lastMessage: '🎤 Message vocal',
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        } catch(e) {
+          console.error(e);
+        }
+      };
+      reader.readAsDataURL(audioBlob);
+      stream.getTracks().forEach(t => t.stop());
+
+      const indicator = document.getElementById('recording-indicator');
+      if (indicator) indicator.style.display = 'none';
+
+      const btn = document.getElementById('send-btn');
+      btn.textContent = '🎤';
+      btn.style.background = '#075e54';
+      isRecording = false;
+    };
+
+    mediaRecorder.start();
+  } catch(e) {
+    alert('Impossible d\'accéder au micro !');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+  }
+}
+
+window.cancelRecording = function() {
+  if (mediaRecorder && isRecording) {
+    audioChunks = [];
+    mediaRecorder.stop();
+    isRecording = false;
+    const indicator = document.getElementById('recording-indicator');
+    if (indicator) indicator.style.display = 'none';
+    const btn = document.getElementById('send-btn');
+    btn.textContent = '🎤';
+    btn.style.background = '#075e54';
+  }
+}
+
 window.sendMessage = doSend;
 
 function updateSendBtn(value) {
@@ -136,6 +230,19 @@ input.addEventListener('input', (e) => {
 
 input.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') doSend();
+});
+
+// Bouton envoi/micro
+const sendBtn = document.getElementById('send-btn');
+sendBtn.addEventListener('click', () => {
+  const text = document.getElementById('message-input').value.trim();
+  if (text) {
+    doSend();
+  } else if (!isRecording) {
+    startRecording();
+  } else {
+    stopRecording();
+  }
 });
 
 updateSendBtn('');
