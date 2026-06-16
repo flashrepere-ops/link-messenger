@@ -18,7 +18,7 @@
     </div>
     <div class="header-right">
       <button class="icon-btn" onclick="showSearch()">🔍</button>
-      <button class="icon-btn" onclick="logout()">⚙️</button>
+      <button class="icon-btn" onclick="openSettings()">⚙️</button>
     </div>
   </div>
 
@@ -52,19 +52,19 @@
 
   <!-- BARRE DU BAS -->
   <div class="bottom-nav">
-    <button class="nav-btn active">
+    <button class="nav-btn active" onclick="goToTab(this, 'home')">
       <span>💬</span>
       <span>Discussions</span>
     </button>
-    <button class="nav-btn">
+    <button class="nav-btn" onclick="goToTab(this, 'calls')">
       <span>📞</span>
       <span>Appels</span>
     </button>
-    <button class="nav-btn">
+    <button class="nav-btn" onclick="goToTab(this, 'status')">
       <span>🔵</span>
       <span>Statuts</span>
     </button>
-    <button class="nav-btn">
+    <button class="nav-btn" onclick="goToTab(this, 'settings')">
       <span>⚙️</span>
       <span>Outils</span>
     </button>
