@@ -3,308 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Appel - Link Messenger</title>
-  <script src="https://unpkg.com/@daily-co/daily-js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-
-    body {
-      background: #1a1a2e;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .call-bg {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0f3460 100%);
-      background-size: 400% 400%;
-      animation: gradientShift 8s ease infinite;
-      z-index: 0;
-    }
-
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .call-container {
-      position: relative;
-      z-index: 1;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      padding: 60px 20px 40px;
-    }
-
-    /* TOP */
-    .call-top {
-      text-align: center;
-      width: 100%;
-    }
-
-    .call-type-label {
-      font-size: 13px;
-      color: rgba(255,255,255,0.6);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .call-name {
-      font-size: 28px;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 8px;
-    }
-
-    .call-status {
-      font-size: 15px;
-      color: #00d4aa;
-      animation: pulse-text 2s ease infinite;
-    }
-
-    @keyframes pulse-text {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    /* AVATAR */
-    .avatar-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .avatar-rings {
-      position: relative;
-      width: 180px;
-      height: 180px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 2px solid rgba(0, 212, 170, 0.3);
-      animation: ringPulse 2s ease-out infinite;
-    }
-
-    .ring:nth-child(1) {
-      width: 180px;
-      height: 180px;
-      animation-delay: 0s;
-    }
-
-    .ring:nth-child(2) {
-      width: 150px;
-      height: 150px;
-      animation-delay: 0.5s;
-    }
-
-    .ring:nth-child(3) {
-      width: 120px;
-      height: 120px;
-      animation-delay: 1s;
-    }
-
-    @keyframes ringPulse {
-      0% { transform: scale(1); opacity: 0.8; }
-      100% { transform: scale(1.3); opacity: 0; }
-    }
-
-    .call-avatar {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #00a884, #00d4aa);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      font-weight: bold;
-      color: white;
-      border: 4px solid rgba(255,255,255,0.3);
-      box-shadow: 0 0 30px rgba(0,212,170,0.4);
-      z-index: 1;
-      position: relative;
-      overflow: hidden;
-      background-size: cover;
-      background-position: center;
-    }
-
-    .call-timer {
-      font-size: 22px;
-      color: white;
-      font-weight: 300;
-      letter-spacing: 3px;
-    }
-
-    /* VIDEO AREA */
-    .video-area {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      display: none;
-    }
-
-    .video-area.active {
-      display: block;
-    }
-
-    /* CONTROLS */
-    .call-controls {
-      width: 100%;
-    }
-
-    .controls-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 16px;
-    }
-
-    .ctrl-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-
-    .ctrl-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-      transition: all 0.2s;
-    }
-
-    .ctrl-icon:hover {
-      background: rgba(255,255,255,0.25);
-      transform: scale(1.1);
-    }
-
-    .ctrl-icon.active {
-      background: rgba(255,255,255,0.9);
-    }
-
-    .ctrl-label {
-      font-size: 11px;
-      color: rgba(255,255,255,0.7);
-    }
-
-    .end-call-btn {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: #f15c6d;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 20px rgba(241,92,109,0.5);
-      transition: all 0.2s;
-      animation: endBtnPulse 2s ease infinite;
-    }
-
-    @keyframes endBtnPulse {
-      0%, 100% { box-shadow: 0 4px 20px rgba(241,92,109,0.5); }
-      50% { box-shadow: 0 4px 40px rgba(241,92,109,0.8); }
-    }
-
-    .end-call-btn:hover {
-      transform: scale(1.1);
-      background: #e0404f;
-    }
-
-    /* DAILY FRAME */
-    #daily-frame {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: none;
-      z-index: 50;
-    }
-
-    #daily-frame.active {
-      display: block;
-    }
-  </style>
+  <title>Appels - Link Messenger</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="call-bg"></div>
+<div class="app">
 
-<div class="call-container" id="call-ui">
-
-  <!-- TOP -->
-  <div class="call-top">
-    <div class="call-type-label" id="call-type-label">Appel audio</div>
-    <div class="call-name" id="call-name">...</div>
-    <div class="call-status" id="call-status">Connexion en cours...</div>
+  <div class="header">
+    <div class="header-left">
+      <span class="app-name">📞 Appels</span>
+    </div>
   </div>
 
-  <!-- AVATAR -->
-  <div class="avatar-area">
-    <div class="avatar-rings">
-      <div class="ring"></div>
-      <div class="ring"></div>
-      <div class="ring"></div>
-      <div class="call-avatar" id="call-avatar">?</div>
+  <div class="conversations">
+    <div style="text-align:center;padding:60px 20px;color:#8696a0">
+      <div style="font-size:48px;margin-bottom:16px">📞</div>
+      <p style="font-size:16px;margin-bottom:8px">Aucun appel récent</p>
+      <p style="font-size:13px">Tes appels audio et vidéo apparaîtront ici</p>
     </div>
-    <div class="call-timer" id="call-timer">00:00</div>
   </div>
 
-  <!-- CONTRÔLES -->
-  <div class="call-controls">
-    <div class="controls-row">
-      <button class="ctrl-btn" onclick="toggleMute()">
-        <div class="ctrl-icon" id="mute-icon">🎤</div>
-        <span class="ctrl-label">Micro</span>
-      </button>
-      <button class="end-call-btn" onclick="endCall()">📵</button>
-      <button class="ctrl-btn" onclick="toggleSpeaker()">
-        <div class="ctrl-icon" id="speaker-icon">🔊</div>
-        <span class="ctrl-label">Son</span>
-      </button>
-    </div>
-    <div class="controls-row">
-      <button class="ctrl-btn" onclick="toggleVideo()">
-        <div class="ctrl-icon" id="video-icon">📹</div>
-        <span class="ctrl-label">Caméra</span>
-      </button>
-      <button class="ctrl-btn" onclick="addPerson()">
-        <div class="ctrl-icon">👤+</div>
-        <span class="ctrl-label">Ajouter</span>
-      </button>
-    </div>
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="window.location.href='home.html'">
+      <span>💬</span>
+      <span>Discussions</span>
+    </button>
+    <button class="nav-btn active">
+      <span>📞</span>
+      <span>Appels</span>
+    </button>
+    <button class="nav-btn" onclick="window.location.href='status.html'">
+      <span>🔵</span>
+      <span>Statuts</span>
+    </button>
+    <button class="nav-btn" onclick="window.location.href='settings.html'">
+      <span>⚙️</span>
+      <span>Outils</span>
+    </button>
   </div>
 
 </div>
 
-<!-- DAILY FRAME -->
-<iframe id="daily-frame" allow="camera; microphone; autoplay; display-capture"></iframe>
-
-<script type="module" src="call.js"></script>
+<script>
+  if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+  }
+</script>
 </body>
 </html>

@@ -2,6 +2,10 @@ import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+}
+
 const DAILY_API_KEY = '67a3b2fc45f3aa099b42b93b31a003a2b2c650cb66f6054a880d65fefeb75cd4';
 
 let callFrame = null;

@@ -2,6 +2,10 @@ import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+}
+
 let currentUser = null;
 let convId = null;
 let otherUserId = null;
@@ -224,16 +228,12 @@ window.startVideoCall = function() {
   window.location.href = `call.html?user=${otherUserId}&name=${encodeURIComponent(otherName)}&type=video&room=${roomName}`;
 }
 
-window.sendMessage = doSend;
-
 function updateSendBtn(value) {
   const btn = document.getElementById('send-btn');
   if (value.trim()) {
     btn.textContent = '➤';
-    btn.onclick = doSend;
   } else {
     btn.textContent = '🎤';
-    btn.onclick = null;
   }
 }
 

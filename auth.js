@@ -9,6 +9,10 @@ import {
   collection, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+}
+
 // Afficher connexion
 window.showLogin = function() {
   document.getElementById('login-form').style.display = 'block';

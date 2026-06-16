@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let currentUser = null;
 let currentUserData = null;
@@ -63,7 +63,7 @@ function loadSettings() {
   document.getElementById('sound-toggle').checked = sound;
   document.getElementById('notif-toggle').checked = notif;
 
-  if (dark) document.body.classList.add('light-mode');
+  if (dark) document.body.classList.add('dark-mode');
 }
 
 window.saveProfile = async function() {
@@ -126,6 +126,7 @@ window.changePassword = async function() {
 window.deleteAccount = async function() {
   if (!confirm('Supprimer définitivement ton compte ? Cette action est irréversible !')) return;
   try {
+    await deleteDoc(doc(db, 'users', currentUser.uid));
     await deleteUser(currentUser);
     window.location.href = 'index.html';
   } catch(e) {
@@ -137,9 +138,9 @@ window.toggleTheme = function() {
   const dark = document.getElementById('dark-mode-toggle').checked;
   localStorage.setItem('darkMode', dark);
   if (dark) {
-    document.body.classList.remove('dark-mode');
-  } else {
     document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
   }
 }
 
