@@ -47,7 +47,6 @@ onAuthStateChanged(auth, async (user) => {
   }
   currentUser = user;
 
-  // Charger photo de profil dans le header
   const userSnap = await getDoc(doc(db, 'users', user.uid));
   if (userSnap.exists()) {
     const userData = userSnap.data();
@@ -68,7 +67,7 @@ onAuthStateChanged(auth, async (user) => {
   loadConversations();
 });
 
-window.logout = function() {
+window.openSettings = function() {
   window.location.href = 'settings.html';
 }
 
@@ -86,10 +85,24 @@ window.switchTab = function(btn, tab) {
   filterConversations(tab);
 }
 
+window.goToTab = function(btn, tab) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (tab === 'home') {
+    // déjà sur home, rien à faire
+  } else if (tab === 'calls') {
+    window.location.href = 'calls.html';
+  } else if (tab === 'status') {
+    window.location.href = 'status.html';
+  } else if (tab === 'settings') {
+    window.location.href = 'settings.html';
+  }
+}
+
 let allConvs = [];
 
 function filterConversations(tab) {
-  const list = document.getElementById('conversations-list');
   let filtered = allConvs;
 
   if (tab === 'unread') {
@@ -99,10 +112,14 @@ function filterConversations(tab) {
   }
 
   if (filtered.length === 0) {
+    const list = document.getElementById('conversations-list');
+    let msg = 'Aucune conversation';
+    if (tab === 'unread') msg = 'Aucun message non lu';
+    if (tab === 'favorites') msg = 'Aucun favori';
     list.innerHTML = `
       <div style="text-align:center;padding:40px;color:#8696a0">
         <div style="font-size:48px;margin-bottom:16px">💬</div>
-        <p style="font-size:16px">Aucune conversation</p>
+        <p style="font-size:16px">${msg}</p>
       </div>
     `;
     return;
