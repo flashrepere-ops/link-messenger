@@ -164,6 +164,42 @@ body.dark-mode .header {
   box-shadow: none;
 }
 
+.header-whatsapp {
+  background: #008069;
+  box-shadow: none;
+}
+
+body.dark-mode .header-whatsapp {
+  background: #008069;
+}
+
+.header-whatsapp .app-name { color: #ffffff; }
+.header-whatsapp .icon-btn { color: #ffffff; }
+.header-whatsapp .icon-btn:hover { background: rgba(255,255,255,0.15); }
+
+.top-section-bar {
+  display: flex;
+  background: #008069;
+  padding: 0 8px;
+}
+
+.top-section-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 4px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+}
+
+.top-section-btn.active {
+  color: #ffffff;
+  border-bottom: 3px solid #ffffff;
+}
+
 .header-left {
   display: flex;
   align-items: center;
