@@ -25,18 +25,48 @@
     </div>
   </div>
 
-  <!-- SÉLECTEUR EMOJIS -->
-  <div class="emoji-picker" id="emoji-picker" style="display:none">
-    <div class="emoji-categories">
-      <button class="emoji-cat active" onclick="showEmojiCat(this, 'smileys')">😊</button>
-      <button class="emoji-cat" onclick="showEmojiCat(this, 'gestures')">👋</button>
-      <button class="emoji-cat" onclick="showEmojiCat(this, 'hearts')">❤️</button>
-      <button class="emoji-cat" onclick="showEmojiCat(this, 'animals')">🐶</button>
-      <button class="emoji-cat" onclick="showEmojiCat(this, 'food')">🍕</button>
-      <button class="emoji-cat" onclick="showEmojiCat(this, 'travel')">✈️</button>
-      <button class="emoji-cat" onclick="showEmojiCat(this, 'symbols')">💯</button>
+  <!-- PANNEAU TROMBONE -->
+  <div class="attach-panel" id="attach-panel" style="display:none">
+    <div class="attach-grip"></div>
+    <div class="attach-grid">
+      <button class="attach-item" onclick="attachDocument()">
+        <div class="attach-icon doc">📄</div>
+        <span>Document</span>
+      </button>
+      <button class="attach-item" onclick="attachGallery()">
+        <div class="attach-icon gal">🖼️</div>
+        <span>Galerie</span>
+      </button>
+      <button class="attach-item" onclick="openCatalogue()">
+        <div class="attach-icon cat">🏬</div>
+        <span>Catalogue</span>
+      </button>
+      <button class="attach-item" onclick="openQuickReply()">
+        <div class="attach-icon qr">⚡</div>
+        <span>Réponse rapide</span>
+      </button>
+      <button class="attach-item" onclick="attachLocation()">
+        <div class="attach-icon loc">📍</div>
+        <span>Localisation</span>
+      </button>
+      <button class="attach-item" onclick="openContactPicker()">
+        <div class="attach-icon contact">👤</div>
+        <span>Contact</span>
+      </button>
+      <button class="attach-item" onclick="openPollCreator()">
+        <div class="attach-icon poll">📊</div>
+        <span>Sondage</span>
+      </button>
+      <button class="attach-item" onclick="openEventCreator()">
+        <div class="attach-icon evt">📅</div>
+        <span>Événement</span>
+      </button>
     </div>
-    <div class="emoji-grid" id="emoji-grid"></div>
+  </div>
+
+  <!-- MODALE GÉNÉRIQUE (catalogue / sondage / événement / contact / réponse rapide) -->
+  <div class="modal-overlay" id="modal-overlay" style="display:none" onclick="closeModal(event)">
+    <div class="modal-box" id="modal-box"></div>
   </div>
 
   <!-- INDICATEUR ENREGISTREMENT -->
@@ -51,15 +81,18 @@
 
   <!-- BARRE D'INPUT -->
   <div class="message-input-area">
-    <button class="input-icon-btn" onclick="toggleEmoji()">😊</button>
+    <button class="input-icon-btn" onclick="toggleAttachPanel()">📎</button>
     <input
       type="text"
       id="message-input"
       placeholder="Message"
     />
     <button class="input-icon-btn" onclick="openCamera()">📷</button>
-    <button class="send-btn" id="send-btn" onclick="sendMessage()">🎤</button>
+    <button class="send-btn" id="send-btn">🎤</button>
   </div>
+
+  <input type="file" id="document-file" style="display:none" onchange="handleDocumentFile(event)" />
+  <input type="file" id="gallery-file" accept="image/*" multiple style="display:none" onchange="handleGalleryFiles(event)" />
 
 </div>
 

@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, orderBy, query, where, doc, setDoc, getDoc, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
@@ -138,6 +138,73 @@ function loadMessages() {
       } else if (msg.image) {
         div.innerHTML = `
           <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else if (msg.document) {
+        div.innerHTML = `
+          <a href="${msg.document}" download="${msg.docName}" class="doc-card" style="color:inherit;text-decoration:none">
+            <span class="doc-card-icon">📄</span>
+            <div>
+              <div class="struct-card-title">${msg.docName}</div>
+              <div class="struct-card-sub">${msg.docSize ? Math.round(msg.docSize/1024) + ' Ko' : ''}</div>
+            </div>
+          </a>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else if (msg.catalogue) {
+        div.innerHTML = `
+          <div class="struct-card">
+            <div class="struct-card-title">🏬 ${msg.catalogue.name}</div>
+            ${msg.catalogue.price ? `<div class="struct-card-sub">${msg.catalogue.price} €</div>` : ''}
+            ${msg.catalogue.desc ? `<div class="struct-card-sub">${msg.catalogue.desc}</div>` : ''}
+          </div>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else if (msg.location) {
+        const mapUrl = `https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`;
+        div.innerHTML = `
+          <a href="${mapUrl}" target="_blank" class="location-card">
+            <div class="struct-card">
+              <div class="struct-card-title">📍 Position partagée</div>
+              <div class="struct-card-sub">Ouvrir dans Google Maps</div>
+            </div>
+          </a>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else if (msg.contactCard) {
+        div.innerHTML = `
+          <div class="struct-card">
+            <div class="struct-card-title">👤 ${msg.contactCard.username}</div>
+            <div class="struct-card-sub">Contact partagé</div>
+          </div>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else if (msg.poll) {
+        const votes = msg.poll.votes || {};
+        const myVote = votes[currentUser.uid];
+        const counts = msg.poll.options.map((_, i) =>
+          Object.values(votes).filter(v => v === i).length
+        );
+        const optionsHtml = msg.poll.options.map((opt, i) => `
+          <div class="poll-option-row ${myVote === i ? 'voted' : ''}" onclick="voteOnPoll('${d.id}', ${i})">
+            <span>${opt}</span>
+            <span>${counts[i]}</span>
+          </div>
+        `).join('');
+        div.innerHTML = `
+          <div class="struct-card">
+            <div class="struct-card-title">📊 ${msg.poll.question}</div>
+            ${optionsHtml}
+          </div>
+          <div class="time">${formatTime(msg.createdAt)}</div>
+        `;
+      } else if (msg.event) {
+        div.innerHTML = `
+          <div class="struct-card">
+            <div class="struct-card-title">📅 ${msg.event.title}</div>
+            <div class="struct-card-sub">${msg.event.date}${msg.event.time ? ' à ' + msg.event.time : ''}</div>
+            ${msg.event.location ? `<div class="struct-card-sub">📍 ${msg.event.location}</div>` : ''}
+          </div>
           <div class="time">${formatTime(msg.createdAt)}</div>
         `;
       } else {
@@ -372,4 +439,344 @@ window.openCamera = function() {
     reader.readAsDataURL(file);
   };
   fileInput.click();
+}
+
+// ============ PANNEAU TROMBONE ============
+
+window.toggleAttachPanel = function() {
+  const panel = document.getElementById('attach-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function closeAttachPanel() {
+  document.getElementById('attach-panel').style.display = 'none';
+}
+
+async function sendConvUpdate(lastMessage) {
+  await setDoc(doc(db, 'conversations', convId), {
+    participants: [currentUser.uid, otherUserId],
+    lastMessage,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+}
+
+// ---- MODALE GÉNÉRIQUE ----
+window.closeModal = function(event) {
+  if (event && event.target.id !== 'modal-overlay') return;
+  document.getElementById('modal-overlay').style.display = 'none';
+  document.getElementById('modal-box').innerHTML = '';
+}
+
+function openModal(html) {
+  document.getElementById('modal-box').innerHTML = html;
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+// ---- 1. DOCUMENT ----
+window.attachDocument = function() {
+  closeAttachPanel();
+  document.getElementById('document-file').click();
+}
+
+window.handleDocumentFile = async function(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file || !currentUser) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Fichier trop volumineux (max 5 Mo) !');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    try {
+      await addDoc(collection(db, 'conversations', convId, 'messages'), {
+        text: '',
+        document: ev.target.result,
+        docName: file.name,
+        docSize: file.size,
+        senderId: currentUser.uid,
+        createdAt: serverTimestamp()
+      });
+      await sendConvUpdate('📄 ' + file.name);
+    } catch(e) {
+      console.error(e);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ---- 2. GALERIE (multi-photos) ----
+window.attachGallery = function() {
+  closeAttachPanel();
+  document.getElementById('gallery-file').click();
+}
+
+window.handleGalleryFiles = async function(event) {
+  const files = Array.from(event.target.files);
+  event.target.value = '';
+  if (!files.length || !currentUser) return;
+
+  for (const file of files) {
+    await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          await addDoc(collection(db, 'conversations', convId, 'messages'), {
+            text: '🖼️ Photo',
+            image: ev.target.result,
+            senderId: currentUser.uid,
+            createdAt: serverTimestamp()
+          });
+        } catch(e) {
+          console.error(e);
+        }
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  await sendConvUpdate(files.length > 1 ? `🖼️ ${files.length} photos` : '🖼️ Photo');
+}
+
+// ---- 3. CATALOGUE ----
+window.openCatalogue = function() {
+  closeAttachPanel();
+  openModal(`
+    <h3>🏬 Ajouter un produit</h3>
+    <input type="text" id="cat-name" placeholder="Nom du produit" />
+    <input type="number" id="cat-price" placeholder="Prix (€)" />
+    <textarea id="cat-desc" placeholder="Description" rows="3"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="modal-btn-primary" onclick="sendCatalogueItem()">Envoyer</button>
+    </div>
+  `);
+}
+
+window.sendCatalogueItem = async function() {
+  const name = document.getElementById('cat-name').value.trim();
+  const price = document.getElementById('cat-price').value.trim();
+  const desc = document.getElementById('cat-desc').value.trim();
+  if (!name) { alert('Le nom du produit est requis !'); return; }
+
+  try {
+    await addDoc(collection(db, 'conversations', convId, 'messages'), {
+      text: '',
+      catalogue: { name, price, desc },
+      senderId: currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+    await sendConvUpdate('🏬 ' + name);
+    closeModal();
+  } catch(e) { console.error(e); }
+}
+
+// ---- 4. RÉPONSE RAPIDE ----
+const quickReplies = [
+  "Merci, à bientôt !",
+  "Je te recontacte dès que possible.",
+  "Disponible aujourd'hui ?",
+  "Bien reçu 👍",
+  "Pouvons-nous fixer un rendez-vous ?",
+  "Désolé, je suis occupé là."
+];
+
+window.openQuickReply = function() {
+  closeAttachPanel();
+  const items = quickReplies.map(r =>
+    `<button class="quick-reply-item" onclick="useQuickReply('${r.replace(/'/g, "\\'")}')">${r}</button>`
+  ).join('');
+  openModal(`
+    <h3>⚡ Réponses rapides</h3>
+    <div class="quick-reply-list">${items}</div>
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="closeModal()">Fermer</button>
+    </div>
+  `);
+}
+
+window.useQuickReply = function(text) {
+  const input = document.getElementById('message-input');
+  input.value = text;
+  updateSendBtn(text);
+  closeModal();
+  input.focus();
+}
+
+// ---- 5. LOCALISATION ----
+window.attachLocation = function() {
+  closeAttachPanel();
+  if (!navigator.geolocation) {
+    alert('La localisation n\'est pas disponible sur cet appareil !');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const { latitude, longitude } = pos.coords;
+    try {
+      await addDoc(collection(db, 'conversations', convId, 'messages'), {
+        text: '',
+        location: { lat: latitude, lng: longitude },
+        senderId: currentUser.uid,
+        createdAt: serverTimestamp()
+      });
+      await sendConvUpdate('📍 Position partagée');
+    } catch(e) { console.error(e); }
+  }, () => {
+    alert('Impossible d\'obtenir ta position. Vérifie les autorisations !');
+  });
+}
+
+// ---- 6. CONTACT ----
+window.openContactPicker = async function() {
+  closeAttachPanel();
+  openModal(`<h3>👤 Choisir un contact</h3><p style="font-size:13px;color:#8696a0">Chargement...</p>`);
+
+  try {
+    const convsSnap = await getDocs(query(
+      collection(db, 'conversations'),
+      where('participants', 'array-contains', currentUser.uid)
+    ));
+
+    const others = [];
+    for (const d of convsSnap.docs) {
+      const data = d.data();
+      const otherUid = data.participants.find(p => p !== currentUser.uid);
+      if (otherUid && otherUid !== otherUserId) others.push(otherUid);
+    }
+
+    if (!others.length) {
+      openModal(`
+        <h3>👤 Choisir un contact</h3>
+        <p style="font-size:13px;color:#8696a0">Tu n'as aucun autre contact à partager.</p>
+        <div class="modal-actions"><button class="modal-btn-secondary" onclick="closeModal()">Fermer</button></div>
+      `);
+      return;
+    }
+
+    let html = `<h3>👤 Choisir un contact</h3>`;
+    for (const uid of others) {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) continue;
+      const u = snap.data();
+      html += `
+        <div class="contact-pick-item" onclick="sendContactCard('${uid}', '${(u.username || '').replace(/'/g, "\\'")}')">
+          <div class="avatar" style="width:40px;height:40px;font-size:16px;background:${getColor(u.username || '?')}">${(u.username || '?').charAt(0).toUpperCase()}</div>
+          <span>${u.username || 'Utilisateur'}</span>
+        </div>
+      `;
+    }
+    html += `<div class="modal-actions"><button class="modal-btn-secondary" onclick="closeModal()">Fermer</button></div>`;
+    openModal(html);
+  } catch(e) {
+    console.error(e);
+    closeModal();
+  }
+}
+
+window.sendContactCard = async function(uid, username) {
+  try {
+    await addDoc(collection(db, 'conversations', convId, 'messages'), {
+      text: '',
+      contactCard: { uid, username },
+      senderId: currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+    await sendConvUpdate('👤 Contact : ' + username);
+    closeModal();
+  } catch(e) { console.error(e); }
+}
+
+// ---- 7. SONDAGE ----
+window.openPollCreator = function() {
+  closeAttachPanel();
+  openModal(`
+    <h3>📊 Créer un sondage</h3>
+    <input type="text" id="poll-question" placeholder="Ta question" />
+    <input type="text" id="poll-opt-1" placeholder="Option 1" />
+    <input type="text" id="poll-opt-2" placeholder="Option 2" />
+    <input type="text" id="poll-opt-3" placeholder="Option 3 (facultatif)" />
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="modal-btn-primary" onclick="sendPoll()">Créer</button>
+    </div>
+  `);
+}
+
+window.sendPoll = async function() {
+  const question = document.getElementById('poll-question').value.trim();
+  const opt1 = document.getElementById('poll-opt-1').value.trim();
+  const opt2 = document.getElementById('poll-opt-2').value.trim();
+  const opt3 = document.getElementById('poll-opt-3').value.trim();
+
+  if (!question || !opt1 || !opt2) {
+    alert('Question + au moins 2 options requises !');
+    return;
+  }
+
+  const options = [opt1, opt2];
+  if (opt3) options.push(opt3);
+
+  try {
+    await addDoc(collection(db, 'conversations', convId, 'messages'), {
+      text: '',
+      poll: { question, options, votes: {} },
+      senderId: currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+    await sendConvUpdate('📊 Sondage : ' + question);
+    closeModal();
+  } catch(e) { console.error(e); }
+}
+
+window.voteOnPoll = async function(msgId, optionIndex) {
+  try {
+    const msgRef = doc(db, 'conversations', convId, 'messages', msgId);
+    const snap = await getDoc(msgRef);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const votes = data.poll.votes || {};
+    votes[currentUser.uid] = optionIndex;
+    await updateDoc(msgRef, { 'poll.votes': votes });
+  } catch(e) { console.error(e); }
+}
+
+// ---- 8. ÉVÉNEMENT ----
+window.openEventCreator = function() {
+  closeAttachPanel();
+  openModal(`
+    <h3>📅 Créer un événement</h3>
+    <input type="text" id="evt-title" placeholder="Titre de l'événement" />
+    <input type="date" id="evt-date" />
+    <input type="time" id="evt-time" />
+    <input type="text" id="evt-location" placeholder="Lieu (facultatif)" />
+    <div class="modal-actions">
+      <button class="modal-btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="modal-btn-primary" onclick="sendEvent()">Envoyer</button>
+    </div>
+  `);
+}
+
+window.sendEvent = async function() {
+  const title = document.getElementById('evt-title').value.trim();
+  const date = document.getElementById('evt-date').value;
+  const time = document.getElementById('evt-time').value;
+  const location = document.getElementById('evt-location').value.trim();
+
+  if (!title || !date) {
+    alert('Titre et date requis !');
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, 'conversations', convId, 'messages'), {
+      text: '',
+      event: { title, date, time, location },
+      senderId: currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+    await sendConvUpdate('📅 ' + title);
+    closeModal();
+  } catch(e) { console.error(e); }
 }
