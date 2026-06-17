@@ -67,6 +67,33 @@ function applyWallpaper() {
 
 applyWallpaper();
 
+function getFavoritesList() {
+  try {
+    return JSON.parse(localStorage.getItem('favoriteContacts')) || [];
+  } catch(e) { return []; }
+}
+
+function updateFavBtnState() {
+  const favBtn = document.getElementById('fav-btn');
+  if (!favBtn || !otherUserId) return;
+  const isFav = getFavoritesList().includes(otherUserId);
+  favBtn.style.opacity = isFav ? '1' : '0.5';
+}
+
+window.toggleFavorite = function() {
+  if (!otherUserId) return;
+  let list = getFavoritesList();
+  if (list.includes(otherUserId)) {
+    list = list.filter(id => id !== otherUserId);
+  } else {
+    list.push(otherUserId);
+  }
+  localStorage.setItem('favoriteContacts', JSON.stringify(list));
+  updateFavBtnState();
+}
+
+updateFavBtnState();
+
 async function loadOtherUserProfile() {
   if (!otherUserId) return;
   try {
@@ -98,6 +125,7 @@ onAuthStateChanged(auth, (user) => {
   loadOtherUserProfile();
   loadMessages();
   markConversationAsRead();
+  checkAutoReplies();
 });
 
 async function markConversationAsRead() {
@@ -106,6 +134,53 @@ async function markConversationAsRead() {
       [`unreadCount_${currentUser.uid}`]: 0
     }, { merge: true });
   } catch(e) { console.error(e); }
+}
+
+async function checkAutoReplies() {
+  if (!otherUserId) return;
+  try {
+    const otherSnap = await getDoc(doc(db, 'users', otherUserId));
+    if (!otherSnap.exists()) return;
+    const otherData = otherSnap.data();
+
+    if (otherData.awayMsg && otherData.awayMsg.enabled && otherData.awayMsg.text) {
+      const alreadySent = sessionStorage.getItem(`awaySent_${convId}`);
+      if (!alreadySent) {
+        sessionStorage.setItem(`awaySent_${convId}`, 'true');
+        await sendAutoMessage(otherData.awayMsg.text);
+      }
+      return;
+    }
+
+    if (otherData.greetingMsg && otherData.greetingMsg.enabled && otherData.greetingMsg.text) {
+      const msgsSnap = await getDocs(collection(db, 'conversations', convId, 'messages'));
+      const isFirstContact = msgsSnap.empty;
+      if (isFirstContact) {
+        await sendAutoMessage(otherData.greetingMsg.text);
+      }
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+async function sendAutoMessage(text) {
+  try {
+    await addDoc(collection(db, 'conversations', convId, 'messages'), {
+      text,
+      senderId: otherUserId,
+      read: false,
+      createdAt: serverTimestamp()
+    });
+    await setDoc(doc(db, 'conversations', convId), {
+      participants: [currentUser.uid, otherUserId],
+      lastMessage: text,
+      updatedAt: serverTimestamp(),
+      [`unreadCount_${currentUser.uid}`]: increment(1)
+    }, { merge: true });
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 function formatTime(timestamp) {

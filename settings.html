@@ -46,6 +46,54 @@
       <button class="settings-btn" onclick="saveProfile()">💾 Sauvegarder le profil</button>
     </div>
 
+    <!-- Listes -->
+    <div class="settings-section">
+      <div class="section-title">📋 Listes</div>
+      <label style="font-size:13px;color:#8696a0">Favoris</label>
+      <div id="favorites-list"></div>
+      <label style="font-size:13px;color:#8696a0;margin-top:6px">Groupes</label>
+      <div id="groups-list"></div>
+      <button class="settings-btn" onclick="openGroupCreator()">➕ Créer un groupe</button>
+    </div>
+
+    <!-- Message d'accueil -->
+    <div class="settings-section">
+      <div class="section-title">😊 Message d'accueil</div>
+      <div class="settings-item toggle-item">
+        <span>Activer le message d'accueil</span>
+        <label class="toggle">
+          <input type="checkbox" id="greeting-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <textarea id="greeting-text" rows="2" placeholder="Ton message d'accueil..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit"></textarea>
+      <button class="settings-btn" onclick="saveGreetingMsg()">💾 Enregistrer</button>
+    </div>
+
+    <!-- Message d'absence -->
+    <div class="settings-section">
+      <div class="section-title">🌙 Message d'absence</div>
+      <div class="settings-item toggle-item">
+        <span>Activer le mode absent</span>
+        <label class="toggle">
+          <input type="checkbox" id="away-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <textarea id="away-text" rows="2" placeholder="Ton message d'absence..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit"></textarea>
+      <button class="settings-btn" onclick="saveAwayMsg()">💾 Enregistrer</button>
+    </div>
+
+    <!-- Réponses rapides -->
+    <div class="settings-section">
+      <div class="section-title">⚡ Réponses rapides</div>
+      <div id="quick-replies-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input type="text" id="new-quick-reply" placeholder="Nouvelle réponse..." style="flex:1;margin-bottom:0" />
+        <button class="settings-btn" style="width:auto;padding:10px 16px" onclick="addQuickReply()">➕</button>
+      </div>
+    </div>
+
     <!-- Sécurité -->
     <div class="settings-section">
       <div class="section-title">🔒 Compte & Sécurité</div>
@@ -100,6 +148,15 @@
       </div>
     </div>
 
+    <!-- Pages d'aide -->
+    <div class="settings-section">
+      <div class="section-title">❓ Pages d'aide</div>
+      <p style="font-size:13px;color:#8696a0;line-height:1.5">
+        Link Messenger te permet de discuter, appeler et partager du contenu avec d'autres utilisateurs inscrits.
+        Pour toute question, contacte le créateur de l'application directement.
+      </p>
+    </div>
+
     <!-- Déconnexion -->
     <div class="settings-section">
       <button class="settings-btn danger" onclick="logout()">🚪 Se déconnecter</button>
@@ -108,6 +165,14 @@
   </div>
 
   <div id="settings-msg" class="settings-msg"></div>
+
+  <!-- MODALE CRÉATION DE GROUPE -->
+  <div class="modal-overlay" id="group-creator-overlay" style="display:none">
+    <div class="modal-box">
+      <h3>👥 Nouveau groupe</h3>
+      <div id="group-creator-body"></div>
+    </div>
+  </div>
 
 </div>
 
