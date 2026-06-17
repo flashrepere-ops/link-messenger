@@ -16,15 +16,57 @@
     </div>
   </div>
 
-  <div class="conversations">
-    <div style="text-align:center;padding:60px 20px;color:#8696a0">
-      <div style="font-size:48px;margin-bottom:16px">🔵</div>
-      <p style="font-size:16px;margin-bottom:8px">Aucun statut</p>
-      <p style="font-size:13px">Partage des photos et messages qui disparaissent après 24h</p>
+  <div class="conversations" id="status-list">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
     </div>
   </div>
 
-  <button class="fab" onclick="alert('Bientôt disponible !')">📷</button>
+  <button class="fab" onclick="openStatusComposer()">📷</button>
+
+  <!-- COMPOSITEUR DE STATUT -->
+  <div class="status-composer-overlay" id="status-composer-overlay" style="display:none">
+    <div class="status-composer-header">
+      <button class="back-btn" onclick="closeStatusComposer()">←</button>
+      <span>Nouveau statut</span>
+    </div>
+    <div class="status-composer-body" id="status-composer-body">
+      <div class="status-mode-tabs">
+        <button class="status-mode-tab active" id="mode-tab-photo" onclick="setComposerMode('photo')">📷 Photo</button>
+        <button class="status-mode-tab" id="mode-tab-text" onclick="setComposerMode('text')">✏️ Texte</button>
+      </div>
+
+      <div id="composer-photo-mode">
+        <div id="status-photo-preview" class="status-photo-preview">
+          <button class="status-pick-photo-btn" onclick="document.getElementById('status-photo-input').click()">
+            📷 Choisir une photo
+          </button>
+        </div>
+        <input type="text" id="status-caption" placeholder="Ajouter une légende..." />
+      </div>
+
+      <div id="composer-text-mode" style="display:none">
+        <textarea id="status-text-content" placeholder="Quoi de neuf ?" rows="5"></textarea>
+      </div>
+
+      <button class="settings-btn" onclick="publishStatus()">Publier le statut</button>
+    </div>
+    <input type="file" id="status-photo-input" accept="image/*" style="display:none" onchange="handleStatusPhoto(event)" />
+  </div>
+
+  <!-- VISIONNEUSE DE STATUT -->
+  <div class="status-viewer-overlay" id="status-viewer-overlay" style="display:none" onclick="closeStatusViewer(event)">
+    <div class="status-viewer-box">
+      <div class="status-viewer-header">
+        <div class="avatar" id="viewer-avatar" style="width:36px;height:36px;font-size:14px"></div>
+        <div class="status-viewer-username" id="viewer-username"></div>
+        <div class="status-viewer-time" id="viewer-time"></div>
+        <button class="directory-close" onclick="closeStatusViewer()">✕</button>
+      </div>
+      <div class="status-viewer-content" id="status-viewer-content"></div>
+    </div>
+  </div>
 
   <div class="bottom-nav">
     <button class="nav-btn" onclick="window.location.href='home.html'">
@@ -47,10 +89,6 @@
 
 </div>
 
-<script>
-  if (localStorage.getItem('darkMode') === 'true') {
-    document.body.classList.add('dark-mode');
-  }
-</script>
+<script type="module" src="status.js"></script>
 </body>
 </html>

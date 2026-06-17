@@ -168,6 +168,8 @@ window.toggleVideo = function() {
   const icon = document.getElementById('video-icon');
   icon.textContent = isVideoOff ? '📵' : '📹';
 
+  typeLabelEl.textContent = isVideoOff ? 'Appel audio' : 'Appel vidéo';
+
   const iframe = document.getElementById('daily-frame');
   const ui = document.getElementById('call-ui');
 
