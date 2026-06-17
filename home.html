@@ -47,8 +47,24 @@
     </div>
   </div>
 
-  <!-- BOUTON NOUVEAU CHAT -->
-  <button class="fab" onclick="showSearch()">✏️</button>
+  <!-- BOUTON ANNUAIRE -->
+  <button class="fab" onclick="openDirectory()">👥</button>
+
+  <!-- PANNEAU ANNUAIRE DES UTILISATEURS -->
+  <div class="directory-overlay" id="directory-overlay" style="display:none" onclick="closeDirectory(event)">
+    <div class="directory-box">
+      <div class="directory-header">
+        <span>👥 Utilisateurs inscrits</span>
+        <button class="directory-close" onclick="closeDirectory()">✕</button>
+      </div>
+      <div class="directory-list" id="directory-list">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Chargement...</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- BARRE DU BAS -->
   <div class="bottom-nav">

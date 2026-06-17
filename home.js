@@ -206,6 +206,48 @@ window.startChat = function(otherUid, otherUsername) {
   window.location.href = `chat.html?conv=${convId}&user=${otherUid}&name=${otherUsername}`;
 }
 
+window.openDirectory = async function() {
+  const overlay = document.getElementById('directory-overlay');
+  const list = document.getElementById('directory-list');
+  overlay.style.display = 'flex';
+  list.innerHTML = `<div class="loading"><div class="spinner"></div><p>Chargement...</p></div>`;
+
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    const users = [];
+    snap.forEach(d => {
+      const u = d.data();
+      if (u.uid !== currentUser.uid) users.push(u);
+    });
+
+    if (!users.length) {
+      list.innerHTML = `<p style="text-align:center;padding:24px;color:#8696a0">Aucun autre utilisateur inscrit pour le moment.</p>`;
+      return;
+    }
+
+    users.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
+
+    list.innerHTML = users.map(u => `
+      <div class="directory-item">
+        ${createAvatar(u)}
+        <div class="directory-item-info">
+          <div class="directory-item-name">${u.username || 'Utilisateur'}</div>
+          <div class="directory-item-status">${u.status || "Hey, j'utilise Link Messenger !"}</div>
+        </div>
+        <button class="directory-item-btn" onclick="startChat('${u.uid}', '${(u.username || '').replace(/'/g, "\\'")}')">Discuter</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    console.error(e);
+    list.innerHTML = `<p style="text-align:center;padding:24px;color:#f15c6d">Erreur de chargement.</p>`;
+  }
+}
+
+window.closeDirectory = function(event) {
+  if (event && event.target.id !== 'directory-overlay') return;
+  document.getElementById('directory-overlay').style.display = 'none';
+}
+
 function loadConversations() {
   const list = document.getElementById('conversations-list');
 
