@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, addDoc, onSnapshot, orderBy, query, where, doc, setDoc, getDoc, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, orderBy, query, where, doc, setDoc, getDoc, getDocs, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
@@ -97,7 +97,16 @@ onAuthStateChanged(auth, (user) => {
   currentUser = user;
   loadOtherUserProfile();
   loadMessages();
+  markConversationAsRead();
 });
+
+async function markConversationAsRead() {
+  try {
+    await setDoc(doc(db, 'conversations', convId), {
+      [`unreadCount_${currentUser.uid}`]: 0
+    }, { merge: true });
+  } catch(e) { console.error(e); }
+}
 
 function formatTime(timestamp) {
   if (!timestamp) return '';
@@ -115,10 +124,15 @@ function loadMessages() {
   onSnapshot(q, (snap) => {
     container.innerHTML = '';
     let hasNewIncoming = false;
+    const unreadIncomingIds = [];
 
     snap.forEach((d) => {
       const msg = d.data();
       const isMine = msg.senderId === currentUser.uid;
+
+      if (!isMine && !msg.read) {
+        unreadIncomingIds.push(d.id);
+      }
 
       if (!firstMessagesLoad && !isMine && !knownMessageIds.has(d.id)) {
         hasNewIncoming = true;
@@ -128,17 +142,21 @@ function loadMessages() {
       const div = document.createElement('div');
       div.className = `message ${isMine ? 'mine' : 'theirs'}`;
 
+      const checkmark = isMine
+        ? `<span class="msg-check" style="color:${msg.read ? '#53bdeb' : '#8696a0'}">${msg.read ? '✓✓' : '✓'}</span>`
+        : '';
+
       if (msg.audio) {
         div.innerHTML = `
           <div class="audio-message">
             <audio controls src="${msg.audio}"></audio>
           </div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.image) {
         div.innerHTML = `
           <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.document) {
         div.innerHTML = `
@@ -149,7 +167,7 @@ function loadMessages() {
               <div class="struct-card-sub">${msg.docSize ? Math.round(msg.docSize/1024) + ' Ko' : ''}</div>
             </div>
           </a>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.catalogue) {
         div.innerHTML = `
@@ -158,7 +176,7 @@ function loadMessages() {
             ${msg.catalogue.price ? `<div class="struct-card-sub">${msg.catalogue.price} €</div>` : ''}
             ${msg.catalogue.desc ? `<div class="struct-card-sub">${msg.catalogue.desc}</div>` : ''}
           </div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.location) {
         const mapUrl = `https://www.google.com/maps?q=${msg.location.lat},${msg.location.lng}`;
@@ -169,7 +187,7 @@ function loadMessages() {
               <div class="struct-card-sub">Ouvrir dans Google Maps</div>
             </div>
           </a>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.contactCard) {
         div.innerHTML = `
@@ -177,7 +195,7 @@ function loadMessages() {
             <div class="struct-card-title">👤 ${msg.contactCard.username}</div>
             <div class="struct-card-sub">Contact partagé</div>
           </div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.poll) {
         const votes = msg.poll.votes || {};
@@ -196,7 +214,7 @@ function loadMessages() {
             <div class="struct-card-title">📊 ${msg.poll.question}</div>
             ${optionsHtml}
           </div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.event) {
         div.innerHTML = `
@@ -205,12 +223,12 @@ function loadMessages() {
             <div class="struct-card-sub">${msg.event.date}${msg.event.time ? ' à ' + msg.event.time : ''}</div>
             ${msg.event.location ? `<div class="struct-card-sub">📍 ${msg.event.location}</div>` : ''}
           </div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else {
         div.innerHTML = `
           <div class="msg-text">${msg.text}</div>
-          <div class="time">${formatTime(msg.createdAt)}</div>
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       }
 
@@ -219,6 +237,14 @@ function loadMessages() {
 
     if (hasNewIncoming) playNotificationSound();
     firstMessagesLoad = false;
+
+    if (unreadIncomingIds.length) {
+      unreadIncomingIds.forEach(async (msgId) => {
+        try {
+          await updateDoc(doc(db, 'conversations', convId, 'messages', msgId), { read: true });
+        } catch(e) { console.error(e); }
+      });
+    }
 
     container.scrollTop = container.scrollHeight;
   });
@@ -235,14 +261,11 @@ async function doSend() {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
       text: text,
       senderId: currentUser.uid,
+      read: false,
       createdAt: serverTimestamp()
     });
 
-    await setDoc(doc(db, 'conversations', convId), {
-      participants: [currentUser.uid, otherUserId],
-      lastMessage: text,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await sendConvUpdate(text);
 
   } catch(e) {
     console.error(e);
@@ -276,13 +299,10 @@ async function startRecording() {
             text: '',
             audio: ev.target.result,
             senderId: currentUser.uid,
+            read: false,
             createdAt: serverTimestamp()
           });
-          await setDoc(doc(db, 'conversations', convId), {
-            participants: [currentUser.uid, otherUserId],
-            lastMessage: '🎤 Message vocal',
-            updatedAt: serverTimestamp()
-          }, { merge: true });
+          await sendConvUpdate('🎤 Message vocal');
         } catch(e) {
           console.error(e);
         }
@@ -425,13 +445,10 @@ window.openCamera = function() {
           text: '📷 Photo',
           image: imageData,
           senderId: currentUser.uid,
+          read: false,
           createdAt: serverTimestamp()
         });
-        await setDoc(doc(db, 'conversations', convId), {
-          participants: [currentUser.uid, otherUserId],
-          lastMessage: '📷 Photo',
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+        await sendConvUpdate('📷 Photo');
       } catch(e) {
         console.error(e);
       }
@@ -456,7 +473,8 @@ async function sendConvUpdate(lastMessage) {
   await setDoc(doc(db, 'conversations', convId), {
     participants: [currentUser.uid, otherUserId],
     lastMessage,
-    updatedAt: serverTimestamp()
+    updatedAt: serverTimestamp(),
+    [`unreadCount_${otherUserId}`]: increment(1)
   }, { merge: true });
 }
 
@@ -497,6 +515,7 @@ window.handleDocumentFile = async function(event) {
         docName: file.name,
         docSize: file.size,
         senderId: currentUser.uid,
+        read: false,
         createdAt: serverTimestamp()
       });
       await sendConvUpdate('📄 ' + file.name);
@@ -527,6 +546,7 @@ window.handleGalleryFiles = async function(event) {
             text: '🖼️ Photo',
             image: ev.target.result,
             senderId: currentUser.uid,
+            read: false,
             createdAt: serverTimestamp()
           });
         } catch(e) {
@@ -566,6 +586,7 @@ window.sendCatalogueItem = async function() {
       text: '',
       catalogue: { name, price, desc },
       senderId: currentUser.uid,
+      read: false,
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('🏬 ' + name);
@@ -619,6 +640,7 @@ window.attachLocation = function() {
         text: '',
         location: { lat: latitude, lng: longitude },
         senderId: currentUser.uid,
+        read: false,
         createdAt: serverTimestamp()
       });
       await sendConvUpdate('📍 Position partagée');
@@ -681,6 +703,7 @@ window.sendContactCard = async function(uid, username) {
       text: '',
       contactCard: { uid, username },
       senderId: currentUser.uid,
+      read: false,
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('👤 Contact : ' + username);
@@ -723,6 +746,7 @@ window.sendPoll = async function() {
       text: '',
       poll: { question, options, votes: {} },
       senderId: currentUser.uid,
+      read: false,
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('📊 Sondage : ' + question);
@@ -774,6 +798,7 @@ window.sendEvent = async function() {
       text: '',
       event: { title, date, time, location },
       senderId: currentUser.uid,
+      read: false,
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('📅 ' + title);

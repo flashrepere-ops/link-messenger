@@ -635,6 +635,10 @@ body.dark-mode .bottom-nav {
   opacity: 0.7;
 }
 
+.msg-check {
+  font-size: 11px;
+}
+
 .message.mine {
   background: #d9fdd3;
   color: #111;

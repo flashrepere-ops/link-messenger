@@ -138,6 +138,7 @@ function renderConversations(convs) {
   for (const c of convs) {
     const item = document.createElement('div');
     item.className = 'conv-item';
+    const unreadCount = c.unread || 0;
     item.innerHTML = `
       ${createAvatar(c.otherUser)}
       <div class="conv-info">
@@ -147,7 +148,7 @@ function renderConversations(convs) {
         </div>
         <div class="conv-bottom">
           <span class="conv-last-msg">${c.lastMessage || 'Démarrer la discussion'}</span>
-          ${c.unread > 0 ? `<span class="badge">${c.unread}</span>` : ''}
+          ${unreadCount > 0 ? `<span class="badge">${unreadCount}</span>` : ''}
         </div>
       </div>
     `;
@@ -231,7 +232,8 @@ function loadConversations() {
       const otherUid = data.participants.find(p => p !== currentUser.uid);
       const userSnap = await getDoc(doc(db, 'users', otherUid));
       if (!userSnap.exists()) continue;
-      allConvs.push({ id: d.id, ...data, otherUser: userSnap.data() });
+      const unread = data[`unreadCount_${currentUser.uid}`] || 0;
+      allConvs.push({ id: d.id, ...data, unread, otherUser: userSnap.data() });
     }
 
     allConvs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
