@@ -80,6 +80,16 @@ function loadSettings() {
   loadQuickRepliesList();
   loadFavorites();
   loadGroups();
+  loadBlockedUsers();
+  loadArchivedList();
+  loadPinnedList();
+
+  const readReceipts = localStorage.getItem('readReceipts') !== 'false';
+  document.getElementById('read-receipts-toggle').checked = readReceipts;
+
+  const powerSaver = localStorage.getItem('powerSaver') === 'true';
+  document.getElementById('power-saver-toggle').checked = powerSaver;
+  if (powerSaver) document.body.classList.add('power-saver');
 }
 
 window.saveProfile = async function() {
@@ -419,6 +429,124 @@ async function loadGroups() {
 
 window.openGroup = function(groupId, groupName) {
   window.location.href = `group.html?id=${groupId}&name=${encodeURIComponent(groupName)}`;
+}
+
+// ============ CONFIDENTIALITÉ : BLOCAGE ============
+
+function getBlockedUsers() {
+  try {
+    return JSON.parse(localStorage.getItem('blockedUsers')) || [];
+  } catch(e) { return []; }
+}
+
+async function loadBlockedUsers() {
+  const container = document.getElementById('blocked-list');
+  if (!container) return;
+  const ids = getBlockedUsers();
+
+  if (!ids.length) {
+    container.innerHTML = `<p style="font-size:13px;color:#8696a0">Aucun utilisateur bloqué.</p>`;
+    return;
+  }
+
+  let html = '';
+  for (const uid of ids) {
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) continue;
+      const u = snap.data();
+      html += `
+        <div class="qr-row">
+          <span>🚫 ${u.username || 'Utilisateur'}</span>
+          <button onclick="unblockUser('${uid}')">Débloquer</button>
+        </div>
+      `;
+    } catch(e) { console.error(e); }
+  }
+  container.innerHTML = html || `<p style="font-size:13px;color:#8696a0">Aucun utilisateur bloqué.</p>`;
+}
+
+window.unblockUser = function(uid) {
+  const list = getBlockedUsers().filter(id => id !== uid);
+  localStorage.setItem('blockedUsers', JSON.stringify(list));
+  loadBlockedUsers();
+  showMsg('✅ Utilisateur débloqué !');
+}
+
+window.toggleReadReceipts = function() {
+  const enabled = document.getElementById('read-receipts-toggle').checked;
+  localStorage.setItem('readReceipts', enabled);
+  showMsg(enabled ? '✓✓ Accusés de lecture activés' : '✓✓ Accusés de lecture désactivés');
+}
+
+// ============ DOSSIERS D'ÉCHANGES : ÉPINGLÉS / ARCHIVÉS ============
+
+function getPinned() {
+  try { return JSON.parse(localStorage.getItem('pinnedConvs')) || []; } catch(e) { return []; }
+}
+
+function getArchived() {
+  try { return JSON.parse(localStorage.getItem('archivedConvs')) || []; } catch(e) { return []; }
+}
+
+async function loadPinnedList() {
+  const container = document.getElementById('pinned-list');
+  if (!container) return;
+  const ids = getPinned();
+  if (!ids.length) {
+    container.innerHTML = `<p style="font-size:13px;color:#8696a0">Aucune discussion épinglée.</p>`;
+    return;
+  }
+  let html = '';
+  for (const uid of ids) {
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) continue;
+      html += `<div class="qr-row"><span>📌 ${snap.data().username || 'Utilisateur'}</span><button onclick="unpinConv('${uid}')">Retirer</button></div>`;
+    } catch(e) { console.error(e); }
+  }
+  container.innerHTML = html || `<p style="font-size:13px;color:#8696a0">Aucune discussion épinglée.</p>`;
+}
+
+async function loadArchivedList() {
+  const container = document.getElementById('archived-list');
+  if (!container) return;
+  const ids = getArchived();
+  if (!ids.length) {
+    container.innerHTML = `<p style="font-size:13px;color:#8696a0">Aucune discussion archivée.</p>`;
+    return;
+  }
+  let html = '';
+  for (const uid of ids) {
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) continue;
+      html += `<div class="qr-row"><span>🗄️ ${snap.data().username || 'Utilisateur'}</span><button onclick="unarchiveConv('${uid}')">Restaurer</button></div>`;
+    } catch(e) { console.error(e); }
+  }
+  container.innerHTML = html || `<p style="font-size:13px;color:#8696a0">Aucune discussion archivée.</p>`;
+}
+
+window.unpinConv = function(uid) {
+  const list = getPinned().filter(id => id !== uid);
+  localStorage.setItem('pinnedConvs', JSON.stringify(list));
+  loadPinnedList();
+}
+
+window.unarchiveConv = function(uid) {
+  const list = getArchived().filter(id => id !== uid);
+  localStorage.setItem('archivedConvs', JSON.stringify(list));
+  loadArchivedList();
+  showMsg('✅ Discussion restaurée !');
+}
+
+// ============ ÉCONOMIE D'ÉNERGIE ============
+
+window.togglePowerSaver = function() {
+  const enabled = document.getElementById('power-saver-toggle').checked;
+  localStorage.setItem('powerSaver', enabled);
+  document.body.classList.toggle('power-saver', enabled);
+  showMsg(enabled ? '🔋 Économie d\'énergie activée' : '✅ Économie d\'énergie désactivée');
 }
 
 window.logout = async function() {

@@ -5,6 +5,9 @@ import { collection, addDoc, query, where, onSnapshot, doc, getDoc, serverTimest
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
+if (localStorage.getItem('powerSaver') === 'true') {
+  document.body.classList.add('power-saver');
+}
 
 // Durée de vie d'un statut en heures. Modifiable facilement ici.
 const STATUS_LIFETIME_HOURS = 24;
@@ -194,7 +197,9 @@ window.openStatusViewerFor = function(uid) {
   viewedStatuses = group.statuses;
   viewerIndex = 0;
 
-  document.getElementById('viewer-avatar').outerHTML = createAvatarHtml(group.userData).replace('class="avatar"', 'class="avatar" id="viewer-avatar"');
+  const avatarSlot = document.getElementById('viewer-avatar');
+  avatarSlot.innerHTML = '';
+  avatarSlot.outerHTML = `<div id="viewer-avatar">${createAvatarHtml(group.userData)}</div>`;
   document.getElementById('viewer-username').textContent = group.uid === currentUser.uid ? 'Mon statut' : (group.userData.username || 'Utilisateur');
 
   document.getElementById('status-viewer-overlay').style.display = 'flex';
@@ -216,6 +221,23 @@ function renderCurrentStatus() {
   } else {
     content.innerHTML = `<div class="status-viewer-text-content">${s.text}</div>`;
   }
+
+  content.onclick = (e) => {
+    e.stopPropagation();
+    const rect = content.getBoundingClientRect();
+    const tapX = e.clientX - rect.left;
+    if (tapX < rect.width / 2) {
+      viewerIndex = Math.max(0, viewerIndex - 1);
+    } else {
+      if (viewerIndex < viewedStatuses.length - 1) {
+        viewerIndex++;
+      } else {
+        closeStatusViewer();
+        return;
+      }
+    }
+    renderCurrentStatus();
+  };
 }
 
 window.closeStatusViewer = function(event) {

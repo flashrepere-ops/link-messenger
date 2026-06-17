@@ -5,6 +5,9 @@ import { collection, addDoc, onSnapshot, orderBy, query, where, doc, setDoc, get
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
+if (localStorage.getItem('powerSaver') === 'true') {
+  document.body.classList.add('power-saver');
+}
 
 const NOTIF_SOUND = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAEQAAB6YAJSUlJSUzMzMzMzNAQEBAQEBOTk5OTk5cXFxcXFxpaWlpaWl3d3d3d3eFhYWFhYWSkpKSkqCgoKCgoK6urq6urru7u7u7u8nJycnJydfX19fX1+Tk5OTk5PLy8vLy8v//////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQEIQAAAAAAAAemv39HgQAAAAAAAAAAAAAAAAD/80DEABPAzlADScAAwKxWKxWKxWKydGgFAoFAoFAoQIEYrFYJgmGxWTtyh2GcPw8Zf8wjMpQEsyAAQC4iYDEHcjFJh3OvT09sP1Ag6c5d/DHLv5zp9zqgGf4Y6QAJCAwIBgAAKwivBf/zQsQMF1F6bF2KoAChA+DaAr45QrYMbfh7INjIHsiTID2u5iB5JAGLdg2DQbhFnAYo4lgYUa2LmFzEyRUiv/kOHOHOJkipFTL//IsRYxIqRUyLxeMf+VCQNCUJA0VVtrVvfateNAEARP/zQMQKFPi6FAHF8ACiycpgBAPmBYASYB4GBhAigGReU4b/MNpjnESmKaGMYr4TRg5g9GCCAcgOVVabSxKWlq71+tP3ff3PqX/9VPxWl6P+t/qnF6NnJkFE4A6WZJLrT3L17DSzUdbE//NCxBEQ6K4mNA484KojsAAFaZRCqxgJARquMNIB0WAdZtFbVk1S8qn6V3VW83260fvu/fU9dX9T9vZxe3o/VcAFunPabA9Em0P+HOT9SP0CmYWEIzmCMJAYljIJgAgGGAwAUUDvBAG7//NAxCkSsMIhSg48xKk9OX6WRz9iXhE4XNARFCSDn/qoo4t7P/9mNft//R9uv6UNwZJH4Eaxtp19Y209EvOENciPzhCWqjwQxQOIuCg4TnR6WxEZObOc278vCnoQAzTpQcODBiQ7PGf/80LEOSHZlmz8ZpMJTyuuiosGyJprN2INweF3nsA2AgHiocDAXGCE0JBWUVMmyQuWQn0BGqic2gTWc2jUVaYRqJyfAsLA4SMjIkpWLTqFp0dlSMi1emrq1bdbagZNhaNPCRprWpKadsr/80DEDRNxBkgQNwbpNKtSREVMT8th6HYKIBmZ6OoKICHZXbWElxH2zTQLhx3nRg2MS8AFAIYGCQdY5MoYE6KpKUDEpX/pVBq1SWgmZ/b+nJ9zOXqMBXL9+GWyNfVhQTIesPQ1CogRQ//zQsQaEnjKGAAWvOQwB5qzDCChLACifrwRiB4EkUChUBCMZNMXLCzohc5jqyXmfp4Fp9y/Zr3/8iv7P928fAjKwXddTsCUs3NZQhv2bUaaKk4KwmAcziY2IMYWAGX21iHJPOROQh0xtf/zQMQsEHDKJXQOfQDi7e/7+2YnHd7f9/osb7rnfd2f09m9/t3kYAu/23BnKVKfEXz7+fdSx8CvBGRNigV2Kexhnyu7rvVp8Yicfqn1htS9av0//7Lq/r2K/ZqVSBaaC3b5bt5zG7oJ//NCxEUOEMZOXgt5AJnr0ncGlpyAH5gqKsmh2CiYBAASYbsP5L5Y3eiNmwnb25PMJ1I+jSxn+2i7a3/7zX6BX/UpuUn2WYysinpZXObz3SyR2X5hRfg6TTFCXDNu8EwMBRGgA1MHQf+O//NAxGgQMMoktA49ACstFvvbw5iUDDC7r1Ra2bdt2ZuzirP+l1t/6f/X+l3UjabZAu7oHy6qROQZyj6/jWlL+uUsUwsMYlNPIwmCAdZNJpiU00Au97ul6sPoapv1rT5ty/5bpTau+yX/80LEghG42hgADnzk3f/Fv6pepP/5l5NGUUth53Vyo3BQeY2wYRwUxqdhTGA8A2gmg2TwLAy8b3YGFck1SLNRVhVSKCt2r7ec2T6/oV2ybFTOnAV9dSXqxt1FJgQ3rd9H9MttWXkHqyL/80DElw/wxi40DjsAirMU9iAOFLhgG6h2WYAICFKplbvxWBndsbLrF3bY2L1urVU3R2sn1op3Xfin9WymOF6ucYRsPbUelY2VCmViXMM4hPk4n4hBiZhvU1x2VtLfEehvcsbWIGHBKP/zQsSyEijOFAAOvQDM1eVyyLVQVGAz8S/yPPcRZV3/8RBr9niKW5L3/5Z7VTwA1l/rBgoYLJLI1qYlRPSRExKoqyYErJwjFU9khwIbccpBR9DlEiDvEgD/EcG+X9ONbdLJDgA/WKiv1v/zQMTFEeDOFMIWuwAqKs8sLCzVCoqKiooLCwsLMWKirP/X///+oWFlTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxNgQEMYN9A53AFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxPMV4Pj4MADeTFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=';
 
@@ -93,6 +96,55 @@ window.toggleFavorite = function() {
 }
 
 updateFavBtnState();
+
+window.toggleChatMenu = function() {
+  const menu = document.getElementById('chat-mini-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function getBlockedList() {
+  try { return JSON.parse(localStorage.getItem('blockedUsers')) || []; } catch(e) { return []; }
+}
+
+window.isUserBlocked = function() {
+  return getBlockedList().includes(otherUserId);
+}
+
+window.blockCurrentUser = function() {
+  if (!otherUserId) return;
+  let list = getBlockedList();
+  const blocked = list.includes(otherUserId);
+  if (blocked) {
+    list = list.filter(id => id !== otherUserId);
+  } else {
+    list.push(otherUserId);
+  }
+  localStorage.setItem('blockedUsers', JSON.stringify(list));
+  document.getElementById('chat-mini-menu').style.display = 'none';
+  alert(blocked ? 'Utilisateur débloqué.' : 'Utilisateur bloqué. Tu ne pourras plus lui envoyer de messages.');
+}
+
+window.archiveCurrentConv = function() {
+  if (!otherUserId) return;
+  try {
+    let list = JSON.parse(localStorage.getItem('archivedConvs')) || [];
+    if (!list.includes(otherUserId)) list.push(otherUserId);
+    localStorage.setItem('archivedConvs', JSON.stringify(list));
+  } catch(e) {}
+  document.getElementById('chat-mini-menu').style.display = 'none';
+  alert('Discussion archivée.');
+}
+
+window.pinCurrentConv = function() {
+  if (!otherUserId) return;
+  try {
+    let list = JSON.parse(localStorage.getItem('pinnedConvs')) || [];
+    if (!list.includes(otherUserId)) list.push(otherUserId);
+    localStorage.setItem('pinnedConvs', JSON.stringify(list));
+  } catch(e) {}
+  document.getElementById('chat-mini-menu').style.display = 'none';
+  alert('Discussion épinglée.');
+}
 
 async function loadOtherUserProfile() {
   if (!otherUserId) return;
@@ -313,7 +365,8 @@ function loadMessages() {
     if (hasNewIncoming) playNotificationSound();
     firstMessagesLoad = false;
 
-    if (unreadIncomingIds.length) {
+    const readReceiptsEnabled = localStorage.getItem('readReceipts') !== 'false';
+    if (unreadIncomingIds.length && readReceiptsEnabled) {
       unreadIncomingIds.forEach(async (msgId) => {
         try {
           await updateDoc(doc(db, 'conversations', convId, 'messages', msgId), { read: true });
@@ -329,6 +382,12 @@ async function doSend() {
   const input = document.getElementById('message-input');
   const text = input.value.trim();
   if (!text || !currentUser) return;
+
+  if (window.isUserBlocked && window.isUserBlocked()) {
+    alert('Tu as bloqué cet utilisateur. Débloque-le pour pouvoir lui écrire.');
+    return;
+  }
+
   input.value = '';
   updateSendBtn('');
 

@@ -5,6 +5,9 @@ import { doc, getDoc, collection, addDoc, onSnapshot, orderBy, query, serverTime
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
+if (localStorage.getItem('powerSaver') === 'true') {
+  document.body.classList.add('power-saver');
+}
 
 const params = new URLSearchParams(window.location.search);
 const groupId = params.get('id');

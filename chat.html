@@ -22,6 +22,12 @@
       <button class="chat-icon-btn" onclick="startVideoCall()">📹</button>
       <button class="chat-icon-btn" onclick="startAudioCall()">📞</button>
       <button class="chat-icon-btn" id="fav-btn" onclick="toggleFavorite()">⭐</button>
+      <button class="chat-icon-btn" onclick="toggleChatMenu()">⋮</button>
+      <div class="chat-mini-menu" id="chat-mini-menu" style="display:none">
+        <button onclick="blockCurrentUser()">🚫 Bloquer</button>
+        <button onclick="archiveCurrentConv()">🗄️ Archiver</button>
+        <button onclick="pinCurrentConv()">📌 Épingler</button>
+      </div>
     </div>
   </div>
 

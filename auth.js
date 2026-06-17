@@ -12,6 +12,9 @@ import {
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
+if (localStorage.getItem('powerSaver') === 'true') {
+  document.body.classList.add('power-saver');
+}
 
 // Afficher connexion
 window.showLogin = function() {

@@ -5,6 +5,9 @@ import { collection, query, where, onSnapshot, doc, getDoc, getDocs } from "http
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
+if (localStorage.getItem('powerSaver') === 'true') {
+  document.body.classList.add('power-saver');
+}
 
 let currentUser = null;
 
@@ -135,15 +138,19 @@ function filterConversations(tab) {
 function renderConversations(convs) {
   const list = document.getElementById('conversations-list');
   list.innerHTML = '';
+  let pinned = [];
+  try { pinned = JSON.parse(localStorage.getItem('pinnedConvs')) || []; } catch(e) {}
+
   for (const c of convs) {
     const item = document.createElement('div');
     item.className = 'conv-item';
     const unreadCount = c.unread || 0;
+    const isPinned = pinned.includes(c.otherUserId);
     item.innerHTML = `
       ${createAvatar(c.otherUser)}
       <div class="conv-info">
         <div class="conv-top">
-          <span class="conv-name">${c.otherUser.username}</span>
+          <span class="conv-name">${isPinned ? '📌 ' : ''}${c.otherUser.username}</span>
           <span class="conv-time">${timeAgo(c.updatedAt)}</span>
         </div>
         <div class="conv-bottom">
@@ -275,10 +282,24 @@ function loadConversations() {
       const userSnap = await getDoc(doc(db, 'users', otherUid));
       if (!userSnap.exists()) continue;
       const unread = data[`unreadCount_${currentUser.uid}`] || 0;
-      allConvs.push({ id: d.id, ...data, unread, otherUser: userSnap.data() });
+      allConvs.push({ id: d.id, ...data, unread, otherUserId: otherUid, otherUser: userSnap.data() });
     }
 
-    allConvs.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+    let archived = [];
+    let pinned = [];
+    try { archived = JSON.parse(localStorage.getItem('archivedConvs')) || []; } catch(e) {}
+    try { pinned = JSON.parse(localStorage.getItem('pinnedConvs')) || []; } catch(e) {}
+
+    allConvs = allConvs.filter(c => !archived.includes(c.otherUserId));
+
+    allConvs.sort((a, b) => {
+      const aPinned = pinned.includes(a.otherUserId);
+      const bPinned = pinned.includes(b.otherUserId);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0);
+    });
+
     renderConversations(allConvs);
   });
 }

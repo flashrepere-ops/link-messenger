@@ -105,6 +105,47 @@
       <button class="settings-btn danger" onclick="deleteAccount()">🗑️ Supprimer mon compte</button>
     </div>
 
+    <!-- Confidentialité et sécurité -->
+    <div class="settings-section">
+      <div class="section-title">🛡️ Confidentialité et sécurité</div>
+      <div class="settings-item toggle-item">
+        <span>Accusés de lecture (✓✓)</span>
+        <label class="toggle">
+          <input type="checkbox" id="read-receipts-toggle" checked onchange="toggleReadReceipts()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <label style="font-size:13px;color:#8696a0;margin-top:6px">Utilisateurs bloqués</label>
+      <div id="blocked-list"></div>
+    </div>
+
+    <!-- Dossiers d'échanges -->
+    <div class="settings-section">
+      <div class="section-title">🗂️ Dossiers d'échanges</div>
+      <label style="font-size:13px;color:#8696a0">Discussions épinglées</label>
+      <div id="pinned-list"></div>
+      <label style="font-size:13px;color:#8696a0;margin-top:6px">Discussions archivées</label>
+      <div id="archived-list"></div>
+    </div>
+
+    <!-- Économie d'énergie -->
+    <div class="settings-section">
+      <div class="section-title">🔋 Économie d'énergie</div>
+      <div class="settings-item toggle-item">
+        <span>Réduire les animations</span>
+        <label class="toggle">
+          <input type="checkbox" id="power-saver-toggle" onchange="togglePowerSaver()" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Langue -->
+    <div class="settings-section">
+      <div class="section-title">🌐 Langue</div>
+      <p style="font-size:13px;color:#8696a0">Français (seule langue disponible pour le moment)</p>
+    </div>
+
     <!-- Thème -->
     <div class="settings-section">
       <div class="section-title">🎨 Discussions</div>
