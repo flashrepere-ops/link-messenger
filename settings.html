@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Paramètres - Link Messenger</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/favicon.ico">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="theme-color" content="#008069">
 </head>
 <body>
 
@@ -29,173 +33,338 @@
   <div class="settings-sections">
 
     <!-- Profil -->
-    <div class="settings-section">
-      <div class="section-title">👤 Profil</div>
-      <div class="settings-item">
-        <label>Nom d'utilisateur</label>
-        <input type="text" id="new-username" placeholder="Nouveau nom..." />
+    <div class="accordion-section open">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>👤 Profil</span>
+        <span class="accordion-arrow">▾</span>
       </div>
-      <div class="settings-item">
-        <label>Statut</label>
-        <input type="text" id="new-status" placeholder="Mon statut..." />
+      <div class="accordion-body">
+        <div class="settings-item">
+          <label>Nom d'utilisateur</label>
+          <input type="text" id="new-username" placeholder="Nouveau nom..." />
+        </div>
+        <div class="settings-item">
+          <label>Statut</label>
+          <input type="text" id="new-status" placeholder="Mon statut..." />
+        </div>
+        <div class="settings-item">
+          <label>Photo de profil</label>
+          <input type="file" id="avatar-file" accept="image/*" />
+        </div>
+        <button class="settings-btn" onclick="saveProfile()">💾 Sauvegarder le profil</button>
       </div>
-      <div class="settings-item">
-        <label>Photo de profil</label>
-        <input type="file" id="avatar-file" accept="image/*" />
-      </div>
-      <button class="settings-btn" onclick="saveProfile()">💾 Sauvegarder le profil</button>
     </div>
 
     <!-- Listes -->
-    <div class="settings-section">
-      <div class="section-title">📋 Listes</div>
-      <label style="font-size:13px;color:#8696a0">Favoris</label>
-      <div id="favorites-list"></div>
-      <label style="font-size:13px;color:#8696a0;margin-top:6px">Groupes</label>
-      <div id="groups-list"></div>
-      <button class="settings-btn" onclick="openGroupCreator()">➕ Créer un groupe</button>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>📋 Listes</span>
+        <span class="accordion-arrow">▾</span>
+      </div>
+      <div class="accordion-body">
+        <label style="font-size:13px;color:#8696a0">Favoris</label>
+        <div id="favorites-list"></div>
+        <label style="font-size:13px;color:#8696a0;margin-top:6px">Groupes</label>
+        <div id="groups-list"></div>
+        <button class="settings-btn" onclick="openGroupCreator()">➕ Créer un groupe</button>
+      </div>
+    </div>
+
+    <!-- Dossiers de discussion personnalisés -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>📁 Dossiers de discussion</span>
+        <span class="accordion-arrow">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div id="chat-folders-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" id="new-folder-name" placeholder="Nom du dossier..." style="flex:1;margin-bottom:0" />
+          <button class="settings-btn" style="width:auto;padding:10px 16px" onclick="createChatFolder()">➕</button>
+        </div>
+      </div>
     </div>
 
     <!-- Message d'accueil -->
-    <div class="settings-section">
-      <div class="section-title">😊 Message d'accueil</div>
-      <div class="settings-item toggle-item">
-        <span>Activer le message d'accueil</span>
-        <label class="toggle">
-          <input type="checkbox" id="greeting-toggle" />
-          <span class="slider"></span>
-        </label>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>😊 Message d'accueil</span>
+        <span class="accordion-arrow">▾</span>
       </div>
-      <textarea id="greeting-text" rows="2" placeholder="Ton message d'accueil..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit"></textarea>
-      <button class="settings-btn" onclick="saveGreetingMsg()">💾 Enregistrer</button>
+      <div class="accordion-body">
+        <div class="settings-item toggle-item">
+          <span>Activer le message d'accueil</span>
+          <label class="toggle">
+            <input type="checkbox" id="greeting-toggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <textarea id="greeting-text" rows="2" placeholder="Ton message d'accueil..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit"></textarea>
+        <button class="settings-btn" onclick="saveGreetingMsg()">💾 Enregistrer</button>
+      </div>
     </div>
 
     <!-- Message d'absence -->
-    <div class="settings-section">
-      <div class="section-title">🌙 Message d'absence</div>
-      <div class="settings-item toggle-item">
-        <span>Activer le mode absent</span>
-        <label class="toggle">
-          <input type="checkbox" id="away-toggle" />
-          <span class="slider"></span>
-        </label>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🌙 Message d'absence</span>
+        <span class="accordion-arrow">▾</span>
       </div>
-      <textarea id="away-text" rows="2" placeholder="Ton message d'absence..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit"></textarea>
-      <button class="settings-btn" onclick="saveAwayMsg()">💾 Enregistrer</button>
+      <div class="accordion-body">
+        <div class="settings-item toggle-item">
+          <span>Activer le mode absent</span>
+          <label class="toggle">
+            <input type="checkbox" id="away-toggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <textarea id="away-text" rows="2" placeholder="Ton message d'absence..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit"></textarea>
+        <button class="settings-btn" onclick="saveAwayMsg()">💾 Enregistrer</button>
+      </div>
     </div>
 
     <!-- Réponses rapides -->
-    <div class="settings-section">
-      <div class="section-title">⚡ Réponses rapides</div>
-      <div id="quick-replies-list"></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <input type="text" id="new-quick-reply" placeholder="Nouvelle réponse..." style="flex:1;margin-bottom:0" />
-        <button class="settings-btn" style="width:auto;padding:10px 16px" onclick="addQuickReply()">➕</button>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>⚡ Réponses rapides</span>
+        <span class="accordion-arrow">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div id="quick-replies-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" id="new-quick-reply" placeholder="Nouvelle réponse..." style="flex:1;margin-bottom:0" />
+          <button class="settings-btn" style="width:auto;padding:10px 16px" onclick="addQuickReply()">➕</button>
+        </div>
       </div>
     </div>
 
     <!-- Sécurité -->
-    <div class="settings-section">
-      <div class="section-title">🔒 Compte & Sécurité</div>
-      <div class="settings-item">
-        <label>Nouveau mot de passe</label>
-        <input type="password" id="new-password" placeholder="Nouveau mot de passe..." />
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🔒 Compte & Sécurité</span>
+        <span class="accordion-arrow">▾</span>
       </div>
-      <button class="settings-btn" onclick="changePassword()">🔑 Changer le mot de passe</button>
-      <button class="settings-btn danger" onclick="deleteAccount()">🗑️ Supprimer mon compte</button>
+      <div class="accordion-body">
+        <div class="settings-item">
+          <label>Nouveau mot de passe</label>
+          <input type="password" id="new-password" placeholder="Nouveau mot de passe..." />
+        </div>
+        <button class="settings-btn" onclick="changePassword()">🔑 Changer le mot de passe</button>
+        <button class="settings-btn" onclick="sendVerificationEmail()">📧 Vérifier mon email (2FA)</button>
+        <button class="settings-btn danger" onclick="deleteAccount()">🗑️ Supprimer mon compte</button>
+      </div>
     </div>
 
-    <!-- Confidentialité et sécurité -->
-    <div class="settings-section">
-      <div class="section-title">🛡️ Confidentialité et sécurité</div>
-      <div class="settings-item toggle-item">
-        <span>Accusés de lecture (✓✓)</span>
-        <label class="toggle">
-          <input type="checkbox" id="read-receipts-toggle" checked onchange="toggleReadReceipts()" />
-          <span class="slider"></span>
-        </label>
+    <!-- Confidentialité et sécurité avancée -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🛡️ Confidentialité et sécurité</span>
+        <span class="accordion-arrow">▾</span>
       </div>
-      <label style="font-size:13px;color:#8696a0;margin-top:6px">Utilisateurs bloqués</label>
-      <div id="blocked-list"></div>
+      <div class="accordion-body">
+        <div class="settings-item toggle-item">
+          <span>Accusés de lecture (✓✓)</span>
+          <label class="toggle">
+            <input type="checkbox" id="read-receipts-toggle" checked onchange="toggleReadReceipts()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-item">
+          <label>Vu pour la dernière fois</label>
+          <select class="settings-select" id="last-seen-select" onchange="saveLastSeenSetting()">
+            <option value="everyone">Tout le monde</option>
+            <option value="contacts">Mes contacts</option>
+            <option value="nobody">Personne</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <label>Qui peut voir ma photo et ma bio</label>
+          <select class="settings-select" id="profile-visibility-select" onchange="saveProfileVisibility()">
+            <option value="everyone">Tout le monde</option>
+            <option value="contacts">Mes contacts</option>
+            <option value="nobody">Personne</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <label>Qui peut m'ajouter à un groupe</label>
+          <select class="settings-select" id="group-add-select" onchange="saveGroupAddSetting()">
+            <option value="everyone">Tout le monde</option>
+            <option value="contacts">Mes contacts</option>
+            <option value="nobody">Personne</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <label>Auto-suppression des nouveaux messages</label>
+          <select class="settings-select" id="auto-delete-select" onchange="saveAutoDeleteSetting()">
+            <option value="off">Désactivée</option>
+            <option value="86400">24 heures</option>
+            <option value="604800">7 jours</option>
+            <option value="2592000">30 jours</option>
+          </select>
+        </div>
+
+        <label style="font-size:13px;color:#8696a0;margin-top:6px">Utilisateurs bloqués</label>
+        <div id="blocked-list"></div>
+      </div>
     </div>
 
     <!-- Dossiers d'échanges -->
-    <div class="settings-section">
-      <div class="section-title">🗂️ Dossiers d'échanges</div>
-      <label style="font-size:13px;color:#8696a0">Discussions épinglées</label>
-      <div id="pinned-list"></div>
-      <label style="font-size:13px;color:#8696a0;margin-top:6px">Discussions archivées</label>
-      <div id="archived-list"></div>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🗂️ Discussions épinglées / archivées</span>
+        <span class="accordion-arrow">▾</span>
+      </div>
+      <div class="accordion-body">
+        <label style="font-size:13px;color:#8696a0">Discussions épinglées</label>
+        <div id="pinned-list"></div>
+        <label style="font-size:13px;color:#8696a0;margin-top:6px">Discussions archivées</label>
+        <div id="archived-list"></div>
+      </div>
     </div>
 
     <!-- Économie d'énergie -->
-    <div class="settings-section">
-      <div class="section-title">🔋 Économie d'énergie</div>
-      <div class="settings-item toggle-item">
-        <span>Réduire les animations</span>
-        <label class="toggle">
-          <input type="checkbox" id="power-saver-toggle" onchange="togglePowerSaver()" />
-          <span class="slider"></span>
-        </label>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🔋 Économie d'énergie</span>
+        <span class="accordion-arrow">▾</span>
+      </div>
+      <div class="accordion-body">
+        <div class="settings-item toggle-item">
+          <span>Réduire les animations</span>
+          <label class="toggle">
+            <input type="checkbox" id="power-saver-toggle" onchange="togglePowerSaver()" />
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Langue -->
-    <div class="settings-section">
-      <div class="section-title">🌐 Langue</div>
-      <p style="font-size:13px;color:#8696a0">Français (seule langue disponible pour le moment)</p>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🌐 Langue</span>
+        <span class="accordion-arrow">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p style="font-size:13px;color:#8696a0">Français (seule langue disponible pour le moment)</p>
+      </div>
     </div>
 
-    <!-- Thème -->
-    <div class="settings-section">
-      <div class="section-title">🎨 Discussions</div>
-      <div class="settings-item toggle-item">
-        <span>Mode sombre</span>
-        <label class="toggle">
-          <input type="checkbox" id="dark-mode-toggle" onchange="toggleTheme()" />
-          <span class="slider"></span>
-        </label>
+    <!-- Thème et apparence -->
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🎨 Discussions et apparence</span>
+        <span class="accordion-arrow">▾</span>
       </div>
-      <div class="settings-item">
-        <label>Fond d'écran des discussions</label>
-        <div class="wallpaper-grid" id="wallpaper-grid">
-          <button class="wallpaper-swatch" data-wallpaper="default" onclick="selectWallpaper('default')" style="background:#efeae2"></button>
-          <button class="wallpaper-swatch" data-wallpaper="dark-solid" onclick="selectWallpaper('dark-solid')" style="background:#0b141a"></button>
-          <button class="wallpaper-swatch" data-wallpaper="teal" onclick="selectWallpaper('teal')" style="background:#004d40"></button>
-          <button class="wallpaper-swatch" data-wallpaper="navy" onclick="selectWallpaper('navy')" style="background:#16213e"></button>
-          <button class="wallpaper-swatch" data-wallpaper="warm" onclick="selectWallpaper('warm')" style="background:#3e2723"></button>
-          <button class="wallpaper-swatch custom-upload" onclick="document.getElementById('wallpaper-file').click()">📷</button>
+      <div class="accordion-body">
+        <div class="settings-item">
+          <label>Thème</label>
+          <select class="settings-select" id="theme-mode-select" onchange="saveThemeMode()">
+            <option value="light">Clair</option>
+            <option value="dark">Sombre</option>
+            <option value="system">Synchroniser avec le système</option>
+          </select>
         </div>
-        <input type="file" id="wallpaper-file" accept="image/*" style="display:none" onchange="uploadWallpaper(event)" />
+
+        <div class="settings-item">
+          <label>Couleur d'accent</label>
+          <div class="accent-color-grid" id="accent-color-grid">
+            <button class="accent-swatch" data-accent="#00a884" onclick="selectAccentColor('#00a884')" style="background:#00a884"></button>
+            <button class="accent-swatch" data-accent="#1e88e5" onclick="selectAccentColor('#1e88e5')" style="background:#1e88e5"></button>
+            <button class="accent-swatch" data-accent="#8e24aa" onclick="selectAccentColor('#8e24aa')" style="background:#8e24aa"></button>
+            <button class="accent-swatch" data-accent="#f4511e" onclick="selectAccentColor('#f4511e')" style="background:#f4511e"></button>
+            <button class="accent-swatch" data-accent="#e53935" onclick="selectAccentColor('#e53935')" style="background:#e53935"></button>
+            <button class="accent-swatch" data-accent="#00acc1" onclick="selectAccentColor('#00acc1')" style="background:#00acc1"></button>
+          </div>
+        </div>
+
+        <div class="settings-item">
+          <label>Taille du texte des messages</label>
+          <div class="settings-slider-row">
+            <input type="range" id="font-size-slider" min="12" max="20" step="1" oninput="liveUpdateFontSize(this.value)" onchange="saveFontSize(this.value)" />
+            <span id="font-size-value">14px</span>
+          </div>
+        </div>
+
+        <div class="settings-item toggle-item">
+          <span>Entrée envoie le message</span>
+          <label class="toggle">
+            <input type="checkbox" id="enter-sends-toggle" checked onchange="toggleEnterSends()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-item toggle-item">
+          <span>Émojis géants (message emoji seul)</span>
+          <label class="toggle">
+            <input type="checkbox" id="giant-emoji-toggle" checked onchange="toggleGiantEmoji()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-item toggle-item">
+          <span>Mode sombre (rapide)</span>
+          <label class="toggle">
+            <input type="checkbox" id="dark-mode-toggle" onchange="toggleTheme()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-item">
+          <label>Fond d'écran des discussions</label>
+          <div class="wallpaper-grid" id="wallpaper-grid">
+            <button class="wallpaper-swatch" data-wallpaper="default" onclick="selectWallpaper('default')" style="background:#efeae2"></button>
+            <button class="wallpaper-swatch" data-wallpaper="dark-solid" onclick="selectWallpaper('dark-solid')" style="background:#0b141a"></button>
+            <button class="wallpaper-swatch" data-wallpaper="teal" onclick="selectWallpaper('teal')" style="background:#004d40"></button>
+            <button class="wallpaper-swatch" data-wallpaper="navy" onclick="selectWallpaper('navy')" style="background:#16213e"></button>
+            <button class="wallpaper-swatch" data-wallpaper="warm" onclick="selectWallpaper('warm')" style="background:#3e2723"></button>
+            <button class="wallpaper-swatch custom-upload" onclick="document.getElementById('wallpaper-file').click()">📷</button>
+          </div>
+          <input type="file" id="wallpaper-file" accept="image/*" style="display:none" onchange="uploadWallpaper(event)" />
+        </div>
       </div>
     </div>
 
     <!-- Notifications -->
-    <div class="settings-section">
-      <div class="section-title">🔔 Notifications</div>
-      <div class="settings-item toggle-item">
-        <span>Sons activés</span>
-        <label class="toggle">
-          <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()" />
-          <span class="slider"></span>
-        </label>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🔔 Notifications</span>
+        <span class="accordion-arrow">▾</span>
       </div>
-      <div class="settings-item toggle-item">
-        <span>Alertes activées</span>
-        <label class="toggle">
-          <input type="checkbox" id="notif-toggle" checked onchange="toggleNotif()" />
-          <span class="slider"></span>
-        </label>
+      <div class="accordion-body">
+        <div class="settings-item toggle-item">
+          <span>Sons activés</span>
+          <label class="toggle">
+            <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-item toggle-item">
+          <span>Alertes activées</span>
+          <label class="toggle">
+            <input type="checkbox" id="notif-toggle" checked onchange="toggleNotif()" />
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Pages d'aide -->
-    <div class="settings-section">
-      <div class="section-title">❓ Pages d'aide</div>
-      <p style="font-size:13px;color:#8696a0;line-height:1.5">
-        Link Messenger te permet de discuter, appeler et partager du contenu avec d'autres utilisateurs inscrits.
-        Pour toute question, contacte le créateur de l'application directement.
-      </p>
+    <div class="accordion-section">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>❓ Pages d'aide</span>
+        <span class="accordion-arrow">▾</span>
+      </div>
+      <div class="accordion-body">
+        <p style="font-size:13px;color:#8696a0;line-height:1.5">
+          Link Messenger te permet de discuter, appeler et partager du contenu avec d'autres utilisateurs inscrits.
+          Pour toute question, contacte le créateur de l'application directement.
+        </p>
+      </div>
     </div>
 
     <!-- Déconnexion -->

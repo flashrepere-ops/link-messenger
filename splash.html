@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link Messenger</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/favicon.ico">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="theme-color" content="#008069">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #008069;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .splash-logo {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      animation: fadeInScale 0.6s ease;
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.85); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <img src="icons/splash-logo.png" class="splash-logo" alt="Link Messenger" />
+  <script>
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 1500);
+  </script>
+</body>
+</html>
