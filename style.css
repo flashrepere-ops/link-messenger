@@ -590,6 +590,26 @@ body.dark-mode .bottom-nav {
   border-radius: 4px;
 }
 
+.messages-container.wallpaper-dark-solid {
+  background-color: #0b141a;
+  background-image: none;
+}
+
+.messages-container.wallpaper-teal {
+  background-color: #004d40;
+  background-image: none;
+}
+
+.messages-container.wallpaper-navy {
+  background-color: #16213e;
+  background-image: none;
+}
+
+.messages-container.wallpaper-warm {
+  background-color: #3e2723;
+  background-image: none;
+}
+
 .message {
   max-width: 75%;
   padding: 6px 10px 8px;
@@ -627,6 +647,22 @@ body.dark-mode .bottom-nav {
   color: #111;
   align-self: flex-start;
   border-radius: 0 8px 8px 8px;
+}
+
+.wallpaper-dark-solid .message.theirs,
+.wallpaper-teal .message.theirs,
+.wallpaper-navy .message.theirs,
+.wallpaper-warm .message.theirs {
+  background: #2a3942;
+  color: #e9edef;
+}
+
+.wallpaper-dark-solid .message.mine,
+.wallpaper-teal .message.mine,
+.wallpaper-navy .message.mine,
+.wallpaper-warm .message.mine {
+  background: #056162;
+  color: #e9edef;
 }
 
 /* BARRE MESSAGE */
@@ -1012,6 +1048,40 @@ input:checked + .slider:before { transform: translateX(22px); }
   padding: 12px;
   font-size: 14px;
   font-weight: 600;
+}
+
+.wallpaper-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.wallpaper-swatch {
+  width: 100%;
+  height: 60px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background-size: cover;
+  background-position: center;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.wallpaper-swatch:hover { transform: scale(1.03); }
+
+.wallpaper-swatch.selected {
+  border-color: #00a884;
+}
+
+.wallpaper-swatch.custom-upload {
+  background: #2a3942;
+  color: #e9edef;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #8696a0;
 }
 
 /* PAGE APPEL */

@@ -67,6 +67,18 @@
           <span class="slider"></span>
         </label>
       </div>
+      <div class="settings-item">
+        <label>Fond d'écran des discussions</label>
+        <div class="wallpaper-grid" id="wallpaper-grid">
+          <button class="wallpaper-swatch" data-wallpaper="default" onclick="selectWallpaper('default')" style="background:#efeae2"></button>
+          <button class="wallpaper-swatch" data-wallpaper="dark-solid" onclick="selectWallpaper('dark-solid')" style="background:#0b141a"></button>
+          <button class="wallpaper-swatch" data-wallpaper="teal" onclick="selectWallpaper('teal')" style="background:#004d40"></button>
+          <button class="wallpaper-swatch" data-wallpaper="navy" onclick="selectWallpaper('navy')" style="background:#16213e"></button>
+          <button class="wallpaper-swatch" data-wallpaper="warm" onclick="selectWallpaper('warm')" style="background:#3e2723"></button>
+          <button class="wallpaper-swatch custom-upload" onclick="document.getElementById('wallpaper-file').click()">📷</button>
+        </div>
+        <input type="file" id="wallpaper-file" accept="image/*" style="display:none" onchange="uploadWallpaper(event)" />
+      </div>
     </div>
 
     <!-- Notifications -->

@@ -64,6 +64,11 @@ function loadSettings() {
   document.getElementById('notif-toggle').checked = notif;
 
   if (dark) document.body.classList.add('dark-mode');
+
+  const savedWallpaper = localStorage.getItem('wallpaper') || 'default';
+  document.querySelectorAll('.wallpaper-swatch[data-wallpaper]').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.wallpaper === savedWallpaper);
+  });
 }
 
 window.saveProfile = async function() {
@@ -148,6 +153,30 @@ window.toggleSound = function() {
   const sound = document.getElementById('sound-toggle').checked;
   localStorage.setItem('sound', sound);
   showMsg(sound ? '🔊 Sons activés' : '🔇 Sons désactivés');
+}
+
+window.selectWallpaper = function(name) {
+  localStorage.setItem('wallpaper', name);
+  localStorage.removeItem('wallpaperCustom');
+  document.querySelectorAll('.wallpaper-swatch[data-wallpaper]').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.wallpaper === name);
+  });
+  showMsg('🖼️ Fond d\'écran mis à jour !');
+}
+
+window.uploadWallpaper = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    localStorage.setItem('wallpaper', 'custom');
+    localStorage.setItem('wallpaperCustom', e.target.result);
+    document.querySelectorAll('.wallpaper-swatch[data-wallpaper]').forEach(btn => {
+      btn.classList.remove('selected');
+    });
+    showMsg('🖼️ Fond d\'écran personnalisé appliqué !');
+  };
+  reader.readAsDataURL(file);
 }
 
 window.toggleNotif = function() {
