@@ -56,40 +56,13 @@ function loadProfile() {
 
 function loadSettings() {
   const dark = localStorage.getItem('darkMode') === 'true';
-  const sound = localStorage.getItem('sound') !== 'false';
-  const notif = localStorage.getItem('notif') !== 'false';
-
-  document.getElementById('dark-mode-toggle').checked = dark;
-  document.getElementById('sound-toggle').checked = sound;
-  document.getElementById('notif-toggle').checked = notif;
-
   if (dark) document.body.classList.add('dark-mode');
-
-  const savedWallpaper = localStorage.getItem('wallpaper') || 'default';
-  document.querySelectorAll('.wallpaper-swatch[data-wallpaper]').forEach(btn => {
-    btn.classList.toggle('selected', btn.dataset.wallpaper === savedWallpaper);
-  });
-
-  const greeting = currentUserData.greetingMsg || {};
-  const away = currentUserData.awayMsg || {};
-  document.getElementById('greeting-toggle').checked = !!greeting.enabled;
-  document.getElementById('greeting-text').value = greeting.text || "Salut ! Merci de m'avoir contacté, je te réponds dès que possible 🙂";
-  document.getElementById('away-toggle').checked = !!away.enabled;
-  document.getElementById('away-text').value = away.text || "Je suis absent pour le moment, je reviens bientôt !";
-
-  loadQuickRepliesList();
-  loadFavorites();
-  loadGroups();
-  loadBlockedUsers();
-  loadArchivedList();
-  loadPinnedList();
-
-  const readReceipts = localStorage.getItem('readReceipts') !== 'false';
-  document.getElementById('read-receipts-toggle').checked = readReceipts;
-
   const powerSaver = localStorage.getItem('powerSaver') === 'true';
-  document.getElementById('power-saver-toggle').checked = powerSaver;
   if (powerSaver) document.body.classList.add('power-saver');
+  const accent = localStorage.getItem('accentColor') || '#00a884';
+  document.documentElement.style.setProperty('--accent-color', accent);
+  const fontSize = localStorage.getItem('fontSize') || '14';
+  document.documentElement.style.setProperty('--msg-font-size', fontSize + 'px');
 }
 
 window.saveProfile = async function() {
@@ -538,6 +511,273 @@ window.unarchiveConv = function(uid) {
   localStorage.setItem('archivedConvs', JSON.stringify(list));
   loadArchivedList();
   showMsg('✅ Discussion restaurée !');
+}
+
+// ============ NAVIGATION ENTRE VUES ============
+
+window.openView = function(viewId) {
+  document.getElementById('view-main').style.display = 'none';
+  document.querySelectorAll('.settings-subview').forEach(v => v.style.display = 'none');
+  const target = document.getElementById(viewId);
+  if (target) {
+    target.style.display = 'block';
+    if (viewId === 'view-confidentialite') {
+      loadBlockedUsers();
+      document.getElementById('last-seen-select').value = currentUserData?.lastSeenPrivacy || 'everyone';
+      document.getElementById('profile-visibility-select').value = currentUserData?.profileVisibility || 'everyone';
+      document.getElementById('group-add-select').value = currentUserData?.groupAddPrivacy || 'everyone';
+      document.getElementById('auto-delete-select').value = localStorage.getItem('autoDeleteTimer') || 'off';
+      document.getElementById('read-receipts-toggle').checked = localStorage.getItem('readReceipts') !== 'false';
+    }
+    if (viewId === 'view-apparence') {
+      document.getElementById('dark-mode-toggle').checked = localStorage.getItem('darkMode') === 'true';
+      document.getElementById('theme-mode-select').value = localStorage.getItem('themeMode') || 'light';
+      const accent = localStorage.getItem('accentColor') || '#00a884';
+      document.querySelectorAll('.accent-swatch').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.accent === accent);
+      });
+      const fontSize = localStorage.getItem('fontSize') || '14';
+      document.getElementById('font-size-slider').value = fontSize;
+      document.getElementById('font-size-value').textContent = fontSize + 'px';
+      document.getElementById('enter-sends-toggle').checked = localStorage.getItem('enterSends') !== 'false';
+      document.getElementById('giant-emoji-toggle').checked = localStorage.getItem('giantEmoji') !== 'false';
+      const savedWallpaper = localStorage.getItem('wallpaper') || 'default';
+      document.querySelectorAll('.wallpaper-swatch[data-wallpaper]').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.wallpaper === savedWallpaper);
+      });
+    }
+    if (viewId === 'view-notifications') {
+      document.getElementById('sound-toggle').checked = localStorage.getItem('sound') !== 'false';
+      document.getElementById('notif-toggle').checked = localStorage.getItem('notif') !== 'false';
+    }
+    if (viewId === 'view-donnees') {
+      document.getElementById('power-saver-toggle').checked = localStorage.getItem('powerSaver') === 'true';
+      estimateStorageUsage();
+    }
+    if (viewId === 'view-fonctionnalites') {
+      loadFavorites();
+      loadGroups();
+      loadChatFolders();
+      loadPinnedList();
+      loadArchivedList();
+      loadQuickRepliesList();
+      const greeting = currentUserData?.greetingMsg || {};
+      const away = currentUserData?.awayMsg || {};
+      document.getElementById('greeting-toggle').checked = !!greeting.enabled;
+      document.getElementById('greeting-text').value = greeting.text || '';
+      document.getElementById('away-toggle').checked = !!away.enabled;
+      document.getElementById('away-text').value = away.text || '';
+    }
+  }
+}
+
+window.closeView = function() {
+  document.querySelectorAll('.settings-subview').forEach(v => v.style.display = 'none');
+  document.getElementById('view-main').style.display = 'block';
+}
+
+// ============ STOCKAGE & AVANCÉ ============
+
+function estimateStorageUsage() {
+  const el = document.getElementById('storage-info');
+  if (!el) return;
+  try {
+    let total = 0;
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        total += (localStorage[key].length + key.length) * 2;
+      }
+    }
+    const kb = Math.round(total / 1024);
+    el.textContent = `LocalStorage utilisé : environ ${kb} Ko`;
+  } catch(e) {
+    el.textContent = 'Impossible de calculer le stockage.';
+  }
+}
+
+window.clearAppCache = function() {
+  if (!confirm('Vider le cache ? Cela ne supprimera pas tes messages ni ton compte.')) return;
+  const keepsake = ['darkMode', 'themeMode', 'accentColor', 'fontSize', 'wallpaper', 'wallpaperCustom', 'sound', 'notif', 'powerSaver', 'enterSends', 'giantEmoji', 'readReceipts', 'autoDeleteTimer', 'blockedUsers', 'favoriteContacts', 'pinnedConvs', 'archivedConvs', 'quickReplies', 'chatFolders'];
+  const saved = {};
+  keepsake.forEach(k => { if (localStorage.getItem(k)) saved[k] = localStorage.getItem(k); });
+  localStorage.clear();
+  Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
+  showMsg('🗑️ Cache vidé !');
+  estimateStorageUsage();
+}
+
+window.exportLogs = function() {
+  const logs = {
+    timestamp: new Date().toISOString(),
+    settings: {},
+    userAgent: navigator.userAgent
+  };
+  ['darkMode','themeMode','accentColor','fontSize','wallpaper','sound','notif','powerSaver','enterSends','giantEmoji','readReceipts','autoDeleteTimer'].forEach(k => {
+    logs.settings[k] = localStorage.getItem(k);
+  });
+  const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'link-messenger-logs.json';
+  a.click();
+  showMsg('📤 Logs exportés !');
+}
+
+window.resetAllSettings = function() {
+  if (!confirm('Réinitialiser TOUS les paramètres ? Cette action est irréversible.')) return;
+  const keep = ['blockedUsers', 'favoriteContacts', 'pinnedConvs', 'archivedConvs', 'quickReplies', 'chatFolders'];
+  const saved = {};
+  keep.forEach(k => { if (localStorage.getItem(k)) saved[k] = localStorage.getItem(k); });
+  localStorage.clear();
+  Object.entries(saved).forEach(([k, v]) => localStorage.setItem(k, v));
+  showMsg('✅ Paramètres réinitialisés !');
+  setTimeout(() => window.location.reload(), 1000);
+}
+
+// ============ CONFIDENTIALITÉ AVANCÉE ============
+
+window.saveLastSeenSetting = async function() {
+  const value = document.getElementById('last-seen-select').value;
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { lastSeenPrivacy: value });
+    currentUserData.lastSeenPrivacy = value;
+    showMsg('✅ Préférence enregistrée !');
+  } catch(e) { showMsg('Erreur : ' + e.message, true); }
+}
+
+window.saveProfileVisibility = async function() {
+  const value = document.getElementById('profile-visibility-select').value;
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { profileVisibility: value });
+    currentUserData.profileVisibility = value;
+    showMsg('✅ Préférence enregistrée !');
+  } catch(e) { showMsg('Erreur : ' + e.message, true); }
+}
+
+window.saveGroupAddSetting = async function() {
+  const value = document.getElementById('group-add-select').value;
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { groupAddPrivacy: value });
+    currentUserData.groupAddPrivacy = value;
+    showMsg('✅ Préférence enregistrée !');
+  } catch(e) { showMsg('Erreur : ' + e.message, true); }
+}
+
+window.saveAutoDeleteSetting = function() {
+  const value = document.getElementById('auto-delete-select').value;
+  localStorage.setItem('autoDeleteTimer', value);
+  showMsg(value === 'off' ? '✅ Auto-suppression désactivée' : '⏱️ Auto-suppression activée');
+}
+
+window.sendVerificationEmail = async function() {
+  try {
+    const { sendEmailVerification } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+    await sendEmailVerification(currentUser);
+    showMsg('📧 Email de vérification envoyé !');
+  } catch(e) {
+    showMsg('Erreur : ' + e.message, true);
+  }
+}
+
+// ============ THÈME, ACCENT, TAILLE DE TEXTE ============
+
+window.saveThemeMode = function() {
+  const mode = document.getElementById('theme-mode-select').value;
+  localStorage.setItem('themeMode', mode);
+
+  if (mode === 'system') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    localStorage.setItem('darkMode', prefersDark);
+    document.body.classList.toggle('dark-mode', prefersDark);
+  } else if (mode === 'dark') {
+    localStorage.setItem('darkMode', 'true');
+    document.body.classList.add('dark-mode');
+  } else {
+    localStorage.setItem('darkMode', 'false');
+    document.body.classList.remove('dark-mode');
+  }
+  document.getElementById('dark-mode-toggle').checked = document.body.classList.contains('dark-mode');
+  showMsg('🎨 Thème mis à jour !');
+}
+
+function applyAccentColor(color) {
+  document.documentElement.style.setProperty('--accent-color', color);
+}
+
+window.selectAccentColor = function(color) {
+  localStorage.setItem('accentColor', color);
+  applyAccentColor(color);
+  document.querySelectorAll('.accent-swatch').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.accent === color);
+  });
+  showMsg('🎨 Couleur d\'accent mise à jour !');
+}
+
+function applyFontSize(size) {
+  document.documentElement.style.setProperty('--msg-font-size', size + 'px');
+}
+
+window.liveUpdateFontSize = function(size) {
+  document.getElementById('font-size-value').textContent = size + 'px';
+  applyFontSize(size);
+}
+
+window.saveFontSize = function(size) {
+  localStorage.setItem('fontSize', size);
+  showMsg('🔤 Taille du texte enregistrée !');
+}
+
+window.toggleEnterSends = function() {
+  const enabled = document.getElementById('enter-sends-toggle').checked;
+  localStorage.setItem('enterSends', enabled);
+  showMsg(enabled ? '⏎ Entrée envoie le message' : '⏎ Entrée crée une nouvelle ligne');
+}
+
+window.toggleGiantEmoji = function() {
+  const enabled = document.getElementById('giant-emoji-toggle').checked;
+  localStorage.setItem('giantEmoji', enabled);
+  showMsg(enabled ? '😀 Émojis géants activés' : '😀 Émojis géants désactivés');
+}
+
+// ============ DOSSIERS DE DISCUSSION ============
+
+function getChatFolders() {
+  try { return JSON.parse(localStorage.getItem('chatFolders')) || ['Personnel', 'Travail']; } catch(e) { return []; }
+}
+
+function loadChatFolders() {
+  const container = document.getElementById('chat-folders-list');
+  if (!container) return;
+  const folders = getChatFolders();
+  if (!folders.length) {
+    container.innerHTML = `<p style="font-size:13px;color:#8696a0">Aucun dossier créé.</p>`;
+    return;
+  }
+  container.innerHTML = folders.map((f, i) => `
+    <div class="folder-row">
+      <span>📁 ${f}</span>
+      <button onclick="removeChatFolder(${i})" style="background:none;border:none;cursor:pointer">🗑️</button>
+    </div>
+  `).join('');
+}
+
+window.createChatFolder = function() {
+  const input = document.getElementById('new-folder-name');
+  const name = input.value.trim();
+  if (!name) return;
+  const folders = getChatFolders();
+  folders.push(name);
+  localStorage.setItem('chatFolders', JSON.stringify(folders));
+  input.value = '';
+  loadChatFolders();
+  showMsg('📁 Dossier créé !');
+}
+
+window.removeChatFolder = function(index) {
+  const folders = getChatFolders();
+  folders.splice(index, 1);
+  localStorage.setItem('chatFolders', JSON.stringify(folders));
+  loadChatFolders();
 }
 
 // ============ ÉCONOMIE D'ÉNERGIE ============
