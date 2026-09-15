@@ -51,6 +51,19 @@
     <button class="tab-btn" onclick="switchTab(this, 'favorites')">Favoris</button>
   </div>
 
+  <!-- NOVA (IA) -->
+  <div class="conv-item" onclick="window.location.href='nova.html'">
+    <div class="avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);font-size:22px">✨</div>
+    <div class="conv-info">
+      <div class="conv-top">
+        <span class="conv-name">Nova</span>
+      </div>
+      <div class="conv-bottom">
+        <span class="conv-last-msg">Ton assistant IA — pose-moi une question !</span>
+      </div>
+    </div>
+  </div>
+
   <!-- LISTE DES CONVERSATIONS -->
   <div class="conversations" id="conversations-list">
     <div class="loading">
@@ -60,14 +73,14 @@
   </div>
 
   <!-- BOUTON ANNUAIRE -->
-  <button class="fab" onclick="openDirectory()">👥</button>
+  <button class="fab" onclick="openDirectory()">👤</button>
 
   <!-- PANNEAU ANNUAIRE DES UTILISATEURS -->
   <div class="directory-overlay" id="directory-overlay" style="display:none" onclick="closeDirectory(event)">
     <div class="directory-box">
       <div class="directory-header">
-        <span>👥 Utilisateurs inscrits</span>
-        <button class="directory-close" onclick="closeDirectory()">✕</button>
+        <span>👤 Utilisateurs inscrits</span>
+        <button class="directory-close" onclick="closeDirectory()">X</button>
       </div>
       <div class="directory-list" id="directory-list">
         <div class="loading">

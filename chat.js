@@ -291,10 +291,29 @@ function loadMessages() {
           <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.image) {
-        div.innerHTML = `
-          <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
-          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
-        `;
+        if (msg.viewOnce) {
+          if (msg.viewOnceOpened) {
+            div.innerHTML = `
+              <div class="view-once-placeholder">👁️ Photo vue unique ouverte</div>
+              <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
+            `;
+          } else if (!isMine) {
+            div.innerHTML = `
+              <div class="view-once-placeholder" style="cursor:pointer" onclick="openViewOnce('${d.id}')">👁️ Photo vue unique — appuie pour voir</div>
+              <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
+            `;
+          } else {
+            div.innerHTML = `
+              <div class="view-once-placeholder">👁️ Photo vue unique envoyée</div>
+              <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
+            `;
+          }
+        } else {
+          div.innerHTML = `
+            <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
+            <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
+          `;
+        }
       } else if (msg.document) {
         div.innerHTML = `
           <a href="${msg.document}" download="${msg.docName}" class="doc-card" style="color:inherit;text-decoration:none">
@@ -585,18 +604,21 @@ window.openCamera = function() {
   fileInput.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
+    const viewOnce = confirm('Envoyer cette photo en vue unique (elle disparaîtra après avoir été vue) ?');
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const imageData = ev.target.result;
       try {
         await addDoc(collection(db, 'conversations', convId, 'messages'), {
-          text: '📷 Photo',
+          text: viewOnce ? '👁️ Photo vue unique' : '📷 Photo',
           image: imageData,
+          viewOnce: viewOnce,
+          viewOnceOpened: false,
           senderId: currentUser.uid,
           read: false,
           createdAt: serverTimestamp()
         });
-        await sendConvUpdate('📷 Photo');
+        await sendConvUpdate(viewOnce ? '👁️ Photo vue unique' : '📷 Photo');
       } catch(e) {
         console.error(e);
       }
@@ -604,6 +626,24 @@ window.openCamera = function() {
     reader.readAsDataURL(file);
   };
   fileInput.click();
+}
+
+window.openViewOnce = async function(msgId) {
+  try {
+    const msgRef = doc(db, 'conversations', convId, 'messages', msgId);
+    const snap = await getDoc(msgRef);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (!data.image || data.viewOnceOpened) return;
+    openModal(`
+      <h3>👁️ Photo vue unique</h3>
+      <img src="${data.image}" style="width:100%;border-radius:8px;margin-bottom:12px" />
+      <div class="modal-actions">
+        <button class="modal-btn-primary" onclick="closeModal()">Fermer</button>
+      </div>
+    `);
+    await updateDoc(msgRef, { viewOnceOpened: true, image: null });
+  } catch(e) { console.error(e); }
 }
 
 // ============ PANNEAU TROMBONE ============
