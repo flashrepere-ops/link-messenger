@@ -8,46 +8,98 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/favicon.ico">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
-  <meta name="theme-color" content="#008069">
+  <meta name="theme-color" content="#03201b">
 </head>
 <body>
  
-  <div class="auth-container">
-    
-    <!-- Logo -->
-    <div class="logo">
-      <img src="icons/icon-192.png" alt="Link Messenger" style="width:64px;height:64px;border-radius:50%;margin-bottom:10px" />
-      <h1>💬 Link Messenger</h1>
-      <p>Connectez-vous avec le monde entier</p>
+  <div class="login-wrap">
+ 
+    <!-- Logo : deux bulles de verre -->
+    <svg class="login-logo" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="b1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#a7f3d0" stop-opacity="0.75"/>
+          <stop offset="1" stop-color="#34d399" stop-opacity="0.25"/>
+        </linearGradient>
+        <linearGradient id="b2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#6ee7b7" stop-opacity="0.8"/>
+          <stop offset="1" stop-color="#059669" stop-opacity="0.45"/>
+        </linearGradient>
+      </defs>
+      <path d="M14 8 h46 a12 12 0 0 1 12 12 v26 a12 12 0 0 1 -12 12 h-30 l-12 12 v-12 h-4 a12 12 0 0 1 -12 -12 v-26 a12 12 0 0 1 12 -12z" fill="url(#b1)" stroke="#d1fae5" stroke-opacity="0.8" stroke-width="2"/>
+      <path d="M52 34 h46 a12 12 0 0 1 12 12 v26 a12 12 0 0 1 -12 12 h-4 v12 l-12 -12 h-30 a12 12 0 0 1 -12 -12 v-26 a12 12 0 0 1 12 -12z" fill="url(#b2)" stroke="#d1fae5" stroke-opacity="0.8" stroke-width="2"/>
+    </svg>
+ 
+    <h1 class="login-title">Link Messenger</h1>
+    <p class="login-sub">Messagerie sécurisée pour tous</p>
+ 
+    <div class="glass-card">
+ 
+      <!-- Connexion -->
+      <div id="login-form">
+        <div class="glass-field">
+          <span class="field-icon">✉️</span>
+          <div class="field-body">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="vous@exemple.com" autocomplete="email" />
+          </div>
+        </div>
+        <div class="glass-field">
+          <span class="field-icon">🔒</span>
+          <div class="field-body">
+            <label for="login-password">Mot de passe</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <button type="button" class="eye-btn" onclick="togglePassword('login-password', this)">👁️</button>
+        </div>
+        <button class="btn-login" onclick="login()">Se connecter</button>
+        <p class="forgot" onclick="resetPassword()">Mot de passe oublié ?</p>
+      </div>
+ 
+      <!-- Inscription -->
+      <div id="register-form" style="display:none">
+        <div class="glass-field">
+          <span class="field-icon">👤</span>
+          <div class="field-body">
+            <label for="register-username">Nom d'utilisateur</label>
+            <input type="text" id="register-username" placeholder="Votre pseudo" autocomplete="username" />
+          </div>
+        </div>
+        <div class="glass-field">
+          <span class="field-icon">✉️</span>
+          <div class="field-body">
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" placeholder="vous@exemple.com" autocomplete="email" />
+          </div>
+        </div>
+        <div class="glass-field">
+          <span class="field-icon">🔒</span>
+          <div class="field-body">
+            <label for="register-password">Mot de passe</label>
+            <input type="password" id="register-password" placeholder="6 caractères minimum" autocomplete="new-password" />
+          </div>
+          <button type="button" class="eye-btn" onclick="togglePassword('register-password', this)">👁️</button>
+        </div>
+        <button class="btn-login" onclick="register()">Créer mon compte</button>
+      </div>
+ 
+      <p id="error-msg" class="error"></p>
     </div>
  
-    <!-- Onglets -->
-    <div class="tabs">
-      <button class="tab active" onclick="showLogin()">Connexion</button>
-      <button class="tab" onclick="showRegister()">Inscription</button>
+    <div class="login-or"><span>ou continuer avec</span></div>
+ 
+    <div class="social-row">
+      <button class="social-btn" onclick="loginWithGoogle()">
+        <span class="g-mark">G</span> Google
+      </button>
     </div>
  
-    <!-- Formulaire Connexion -->
-    <div id="login-form">
-      <input type="email" id="login-email" placeholder="Email" />
-      <input type="password" id="login-password" placeholder="Mot de passe" />
-      <button class="btn-primary" onclick="login()">Se connecter</button>
-      <p class="forgot" onclick="resetPassword()">Mot de passe oublié ?</p>
-    </div>
- 
-    <!-- Formulaire Inscription -->
-    <div id="register-form" style="display:none">
-      <input type="text" id="register-username" placeholder="Nom d'utilisateur" />
-      <input type="email" id="register-email" placeholder="Email" />
-      <input type="password" id="register-password" placeholder="Mot de passe" />
-      <button class="btn-primary" onclick="register()">Créer mon compte</button>
-    </div>
- 
-    <!-- Message d'erreur -->
-    <p id="error-msg" class="error"></p>
+    <p class="login-switch" id="switch-text">Pas encore de compte ?</p>
+    <a class="login-switch-link" id="switch-link" onclick="showRegister()">S'inscrire</a>
  
   </div>
  
   <script type="module" src="auth.js"></script>
 </body>
 </html>
+ 
