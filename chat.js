@@ -1,7 +1,7 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, addDoc, onSnapshot, orderBy, query, where, doc, setDoc, getDoc, getDocs, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+import { collection, addDoc, onSnapshot, orderBy, query, where, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+ 
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
@@ -10,16 +10,25 @@ if (localStorage.getItem('powerSaver') === 'true') {
 }
 document.documentElement.style.setProperty('--accent-color', localStorage.getItem('accentColor') || '#00a884');
 document.documentElement.style.setProperty('--msg-font-size', (localStorage.getItem('fontSize') || '14') + 'px');
-
+ 
 const NOTIF_SOUND = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAEQAAB6YAJSUlJSUzMzMzMzNAQEBAQEBOTk5OTk5cXFxcXFxpaWlpaWl3d3d3d3eFhYWFhYWSkpKSkqCgoKCgoK6urq6urru7u7u7u8nJycnJydfX19fX1+Tk5OTk5PLy8vLy8v//////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQEIQAAAAAAAAemv39HgQAAAAAAAAAAAAAAAAD/80DEABPAzlADScAAwKxWKxWKxWKydGgFAoFAoFAoQIEYrFYJgmGxWTtyh2GcPw8Zf8wjMpQEsyAAQC4iYDEHcjFJh3OvT09sP1Ag6c5d/DHLv5zp9zqgGf4Y6QAJCAwIBgAAKwivBf/zQsQMF1F6bF2KoAChA+DaAr45QrYMbfh7INjIHsiTID2u5iB5JAGLdg2DQbhFnAYo4lgYUa2LmFzEyRUiv/kOHOHOJkipFTL//IsRYxIqRUyLxeMf+VCQNCUJA0VVtrVvfateNAEARP/zQMQKFPi6FAHF8ACiycpgBAPmBYASYB4GBhAigGReU4b/MNpjnESmKaGMYr4TRg5g9GCCAcgOVVabSxKWlq71+tP3ff3PqX/9VPxWl6P+t/qnF6NnJkFE4A6WZJLrT3L17DSzUdbE//NCxBEQ6K4mNA484KojsAAFaZRCqxgJARquMNIB0WAdZtFbVk1S8qn6V3VW83260fvu/fU9dX9T9vZxe3o/VcAFunPabA9Em0P+HOT9SP0CmYWEIzmCMJAYljIJgAgGGAwAUUDvBAG7//NAxCkSsMIhSg48xKk9OX6WRz9iXhE4XNARFCSDn/qoo4t7P/9mNft//R9uv6UNwZJH4Eaxtp19Y209EvOENciPzhCWqjwQxQOIuCg4TnR6WxEZObOc278vCnoQAzTpQcODBiQ7PGf/80LEOSHZlmz8ZpMJTyuuiosGyJprN2INweF3nsA2AgHiocDAXGCE0JBWUVMmyQuWQn0BGqic2gTWc2jUVaYRqJyfAsLA4SMjIkpWLTqFp0dlSMi1emrq1bdbagZNhaNPCRprWpKadsr/80DEDRNxBkgQNwbpNKtSREVMT8th6HYKIBmZ6OoKICHZXbWElxH2zTQLhx3nRg2MS8AFAIYGCQdY5MoYE6KpKUDEpX/pVBq1SWgmZ/b+nJ9zOXqMBXL9+GWyNfVhQTIesPQ1CogRQ//zQsQaEnjKGAAWvOQwB5qzDCChLACifrwRiB4EkUChUBCMZNMXLCzohc5jqyXmfp4Fp9y/Zr3/8iv7P928fAjKwXddTsCUs3NZQhv2bUaaKk4KwmAcziY2IMYWAGX21iHJPOROQh0xtf/zQMQsEHDKJXQOfQDi7e/7+2YnHd7f9/osb7rnfd2f09m9/t3kYAu/23BnKVKfEXz7+fdSx8CvBGRNigV2Kexhnyu7rvVp8Yicfqn1htS9av0//7Lq/r2K/ZqVSBaaC3b5bt5zG7oJ//NCxEUOEMZOXgt5AJnr0ncGlpyAH5gqKsmh2CiYBAASYbsP5L5Y3eiNmwnb25PMJ1I+jSxn+2i7a3/7zX6BX/UpuUn2WYysinpZXObz3SyR2X5hRfg6TTFCXDNu8EwMBRGgA1MHQf+O//NAxGgQMMoktA49ACstFvvbw5iUDDC7r1Ra2bdt2ZuzirP+l1t/6f/X+l3UjabZAu7oHy6qROQZyj6/jWlL+uUsUwsMYlNPIwmCAdZNJpiU00Au97ul6sPoapv1rT5ty/5bpTau+yX/80LEghG42hgADnzk3f/Fv6pepP/5l5NGUUth53Vyo3BQeY2wYRwUxqdhTGA8A2gmg2TwLAy8b3YGFck1SLNRVhVSKCt2r7ec2T6/oV2ybFTOnAV9dSXqxt1FJgQ3rd9H9MttWXkHqyL/80DElw/wxi40DjsAirMU9iAOFLhgG6h2WYAICFKplbvxWBndsbLrF3bY2L1urVU3R2sn1op3Xfin9WymOF6ucYRsPbUelY2VCmViXMM4hPk4n4hBiZhvU1x2VtLfEehvcsbWIGHBKP/zQsSyEijOFAAOvQDM1eVyyLVQVGAz8S/yPPcRZV3/8RBr9niKW5L3/5Z7VTwA1l/rBgoYLJLI1qYlRPSRExKoqyYErJwjFU9khwIbccpBR9DlEiDvEgD/EcG+X9ONbdLJDgA/WKiv1v/zQMTFEeDOFMIWuwAqKs8sLCzVCoqKiooLCwsLMWKirP/X///+oWFlTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxNgQEMYN9A53AFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxPMV4Pj4MADeTFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=';
-
+ 
+ 
+// Messages éphémères : délai par défaut choisi dans Paramètres > Confidentialité
+function expiryField() {
+  const t = localStorage.getItem('autoDeleteTimer');
+  if (!t || t === 'off') return null;
+  return new Date(Date.now() + Number(t) * 1000);
+}
+ 
 function playNotificationSound() {
+  if (window.LM_notify) { window.LM_notify(); return; }
   if (localStorage.getItem('sound') === 'false') return;
   try {
     new Audio(NOTIF_SOUND).play().catch(() => {});
   } catch(e) {}
 }
-
+ 
 let currentUser = null;
 let convId = null;
 let otherUserId = null;
@@ -28,36 +37,36 @@ let audioChunks = [];
 let isRecording = false;
 let knownMessageIds = new Set();
 let firstMessagesLoad = true;
-
+ 
 const params = new URLSearchParams(window.location.search);
 convId = params.get('conv');
 otherUserId = params.get('user');
 const otherName = params.get('name');
-
+ 
 const colors = ['#e53935','#8e24aa','#1e88e5','#00897b','#f4511e','#6d4c41','#00acc1','#43a047'];
-
+ 
 function getColor(name) {
   let sum = 0;
   for (let c of name) sum += c.charCodeAt(0);
   return colors[sum % colors.length];
 }
-
+ 
 const usernameEl = document.getElementById('chat-username');
 const avatarEl = document.getElementById('chat-avatar');
-
+ 
 if (otherName) {
   usernameEl.textContent = otherName;
   avatarEl.textContent = otherName.charAt(0).toUpperCase();
   avatarEl.style.background = getColor(otherName);
 }
-
+ 
 function applyWallpaper() {
   const container = document.getElementById('messages-container');
   const wallpaper = localStorage.getItem('wallpaper') || 'default';
-
+ 
   container.classList.remove('wallpaper-dark-solid', 'wallpaper-teal', 'wallpaper-navy', 'wallpaper-warm');
   container.style.backgroundImage = '';
-
+ 
   if (wallpaper === 'custom') {
     const customData = localStorage.getItem('wallpaperCustom');
     if (customData) {
@@ -69,22 +78,23 @@ function applyWallpaper() {
     container.classList.add(`wallpaper-${wallpaper}`);
   }
 }
-
+ 
 applyWallpaper();
-
+ 
 function getFavoritesList() {
   try {
     return JSON.parse(localStorage.getItem('favoriteContacts')) || [];
   } catch(e) { return []; }
 }
-
+ 
 function updateFavBtnState() {
   const favBtn = document.getElementById('fav-btn');
   if (!favBtn || !otherUserId) return;
   const isFav = getFavoritesList().includes(otherUserId);
   favBtn.style.opacity = isFav ? '1' : '0.5';
+  favBtn.classList.toggle('fav-on', isFav);
 }
-
+ 
 window.toggleFavorite = function() {
   if (!otherUserId) return;
   let list = getFavoritesList();
@@ -96,22 +106,22 @@ window.toggleFavorite = function() {
   localStorage.setItem('favoriteContacts', JSON.stringify(list));
   updateFavBtnState();
 }
-
+ 
 updateFavBtnState();
-
+ 
 window.toggleChatMenu = function() {
   const menu = document.getElementById('chat-mini-menu');
   menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 }
-
+ 
 function getBlockedList() {
   try { return JSON.parse(localStorage.getItem('blockedUsers')) || []; } catch(e) { return []; }
 }
-
+ 
 window.isUserBlocked = function() {
   return getBlockedList().includes(otherUserId);
 }
-
+ 
 window.blockCurrentUser = function() {
   if (!otherUserId) return;
   let list = getBlockedList();
@@ -125,7 +135,7 @@ window.blockCurrentUser = function() {
   document.getElementById('chat-mini-menu').style.display = 'none';
   alert(blocked ? 'Utilisateur débloqué.' : 'Utilisateur bloqué. Tu ne pourras plus lui envoyer de messages.');
 }
-
+ 
 window.archiveCurrentConv = function() {
   if (!otherUserId) return;
   try {
@@ -136,7 +146,7 @@ window.archiveCurrentConv = function() {
   document.getElementById('chat-mini-menu').style.display = 'none';
   alert('Discussion archivée.');
 }
-
+ 
 window.pinCurrentConv = function() {
   if (!otherUserId) return;
   try {
@@ -147,7 +157,7 @@ window.pinCurrentConv = function() {
   document.getElementById('chat-mini-menu').style.display = 'none';
   alert('Discussion épinglée.');
 }
-
+ 
 async function loadOtherUserProfile() {
   if (!otherUserId) return;
   try {
@@ -169,7 +179,7 @@ async function loadOtherUserProfile() {
     console.error(e);
   }
 }
-
+ 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = 'index.html';
@@ -181,7 +191,7 @@ onAuthStateChanged(auth, (user) => {
   markConversationAsRead();
   checkAutoReplies();
 });
-
+ 
 async function markConversationAsRead() {
   try {
     await setDoc(doc(db, 'conversations', convId), {
@@ -189,14 +199,14 @@ async function markConversationAsRead() {
     }, { merge: true });
   } catch(e) { console.error(e); }
 }
-
+ 
 async function checkAutoReplies() {
   if (!otherUserId) return;
   try {
     const otherSnap = await getDoc(doc(db, 'users', otherUserId));
     if (!otherSnap.exists()) return;
     const otherData = otherSnap.data();
-
+ 
     if (otherData.awayMsg && otherData.awayMsg.enabled && otherData.awayMsg.text) {
       const alreadySent = sessionStorage.getItem(`awaySent_${convId}`);
       if (!alreadySent) {
@@ -205,7 +215,7 @@ async function checkAutoReplies() {
       }
       return;
     }
-
+ 
     if (otherData.greetingMsg && otherData.greetingMsg.enabled && otherData.greetingMsg.text) {
       const msgsSnap = await getDocs(collection(db, 'conversations', convId, 'messages'));
       const isFirstContact = msgsSnap.empty;
@@ -217,7 +227,7 @@ async function checkAutoReplies() {
     console.error(e);
   }
 }
-
+ 
 async function sendAutoMessage(text) {
   try {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
@@ -236,7 +246,7 @@ async function sendAutoMessage(text) {
     console.error(e);
   }
 }
-
+ 
 function isMessageEmojiOnly(text) {
   if (!text) return false;
   const trimmed = text.trim();
@@ -244,45 +254,54 @@ function isMessageEmojiOnly(text) {
   const emojiRegex = /^(\p{Extended_Pictographic}\uFE0F?\u200D?)+$/u;
   return emojiRegex.test(trimmed);
 }
-
+ 
 function formatTime(timestamp) {
   if (!timestamp) return '';
   const date = timestamp.toDate();
   return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
-
+ 
 function loadMessages() {
   const container = document.getElementById('messages-container');
   const q = query(
     collection(db, 'conversations', convId, 'messages'),
     orderBy('createdAt', 'asc')
   );
-
+ 
   onSnapshot(q, (snap) => {
     container.innerHTML = '';
     let hasNewIncoming = false;
     const unreadIncomingIds = [];
-
+ 
     snap.forEach((d) => {
       const msg = d.data();
+      const clearedAt = Number(localStorage.getItem('clearedAt_' + convId) || 0);
+      const createdMs = msg.createdAt ? msg.createdAt.toMillis() : Date.now();
+      if (createdMs <= clearedAt) return;
+      if (msg.expiresAt && msg.expiresAt.toMillis() <= Date.now()) {
+        if (msg.senderId === currentUser.uid) {
+          deleteDoc(doc(db, 'conversations', convId, 'messages', d.id)).catch(() => {});
+        }
+        return;
+      }
       const isMine = msg.senderId === currentUser.uid;
-
+ 
       if (!isMine && !msg.read) {
         unreadIncomingIds.push(d.id);
       }
-
+ 
       if (!firstMessagesLoad && !isMine && !knownMessageIds.has(d.id)) {
         hasNewIncoming = true;
       }
       knownMessageIds.add(d.id);
-
+ 
       const div = document.createElement('div');
       div.className = `message ${isMine ? 'mine' : 'theirs'}`;
-
+ 
       const checkmark = isMine
         ? `<span class="msg-check" style="color:${msg.read ? '#53bdeb' : '#8696a0'}">${msg.read ? '✓✓' : '✓'}</span>`
         : '';
-
+ 
       if (msg.audio) {
         div.innerHTML = `
           <div class="audio-message">
@@ -291,29 +310,10 @@ function loadMessages() {
           <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       } else if (msg.image) {
-        if (msg.viewOnce) {
-          if (msg.viewOnceOpened) {
-            div.innerHTML = `
-              <div class="view-once-placeholder">👁️ Photo vue unique ouverte</div>
-              <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
-            `;
-          } else if (!isMine) {
-            div.innerHTML = `
-              <div class="view-once-placeholder" style="cursor:pointer" onclick="openViewOnce('${d.id}')">👁️ Photo vue unique — appuie pour voir</div>
-              <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
-            `;
-          } else {
-            div.innerHTML = `
-              <div class="view-once-placeholder">👁️ Photo vue unique envoyée</div>
-              <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
-            `;
-          }
-        } else {
-          div.innerHTML = `
-            <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
-            <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
-          `;
-        }
+        div.innerHTML = `
+          <img src="${msg.image}" style="max-width:100%;border-radius:8px;" />
+          <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
+        `;
       } else if (msg.document) {
         div.innerHTML = `
           <a href="${msg.document}" download="${msg.docName}" class="doc-card" style="color:inherit;text-decoration:none">
@@ -389,13 +389,13 @@ function loadMessages() {
           <div class="time">${formatTime(msg.createdAt)} ${checkmark}</div>
         `;
       }
-
+ 
       container.appendChild(div);
     });
-
+ 
     if (hasNewIncoming) playNotificationSound();
     firstMessagesLoad = false;
-
+ 
     const readReceiptsEnabled = localStorage.getItem('readReceipts') !== 'false';
     if (unreadIncomingIds.length && readReceiptsEnabled) {
       unreadIncomingIds.forEach(async (msgId) => {
@@ -404,57 +404,58 @@ function loadMessages() {
         } catch(e) { console.error(e); }
       });
     }
-
+ 
     container.scrollTop = container.scrollHeight;
   });
 }
-
+ 
 async function doSend() {
   const input = document.getElementById('message-input');
   const text = input.value.trim();
   if (!text || !currentUser) return;
-
+ 
   if (window.isUserBlocked && window.isUserBlocked()) {
     alert('Tu as bloqué cet utilisateur. Débloque-le pour pouvoir lui écrire.');
     return;
   }
-
+ 
   input.value = '';
   updateSendBtn('');
-
+ 
   try {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
       text: text,
       senderId: currentUser.uid,
       read: false,
+      expiresAt: expiryField(),
       createdAt: serverTimestamp()
     });
-
+ 
     await sendConvUpdate(text);
-
+ 
   } catch(e) {
     console.error(e);
   }
 }
-
+ 
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
     isRecording = true;
-
+ 
     const indicator = document.getElementById('recording-indicator');
     if (indicator) indicator.style.display = 'flex';
-
+ 
     const btn = document.getElementById('send-btn');
     btn.textContent = '⏹';
     btn.style.background = '#f15c6d';
-
+ 
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) audioChunks.push(e.data);
     };
-
+ 
     mediaRecorder.onstop = async () => {
       const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
       const reader = new FileReader();
@@ -465,6 +466,7 @@ async function startRecording() {
             audio: ev.target.result,
             senderId: currentUser.uid,
             read: false,
+            expiresAt: expiryField(),
             createdAt: serverTimestamp()
           });
           await sendConvUpdate('🎤 Message vocal');
@@ -474,28 +476,28 @@ async function startRecording() {
       };
       reader.readAsDataURL(audioBlob);
       stream.getTracks().forEach(t => t.stop());
-
+ 
       const indicator = document.getElementById('recording-indicator');
       if (indicator) indicator.style.display = 'none';
-
+ 
       const btn = document.getElementById('send-btn');
       btn.textContent = '🎤';
       btn.style.background = '#075e54';
       isRecording = false;
     };
-
+ 
     mediaRecorder.start();
   } catch(e) {
     alert('Impossible d\'accéder au micro !');
   }
 }
-
+ 
 function stopRecording() {
   if (mediaRecorder && isRecording) {
     mediaRecorder.stop();
   }
 }
-
+ 
 window.cancelRecording = function() {
   if (mediaRecorder && isRecording) {
     audioChunks = [];
@@ -508,7 +510,7 @@ window.cancelRecording = function() {
     btn.style.background = '#075e54';
   }
 }
-
+ 
 // APPELS
 window.startAudioCall = function() {
   if (!currentUser || !otherUserId) return;
@@ -516,14 +518,14 @@ window.startAudioCall = function() {
   const roomName = 'call-' + ids.join('-').substring(0, 20);
   window.location.href = `call.html?user=${otherUserId}&name=${encodeURIComponent(otherName)}&type=audio&room=${roomName}`;
 }
-
+ 
 window.startVideoCall = function() {
   if (!currentUser || !otherUserId) return;
   const ids = [currentUser.uid, otherUserId].sort();
   const roomName = 'call-' + ids.join('-').substring(0, 20);
   window.location.href = `call.html?user=${otherUserId}&name=${encodeURIComponent(otherName)}&type=video&room=${roomName}`;
 }
-
+ 
 function updateSendBtn(value) {
   const btn = document.getElementById('send-btn');
   if (value.trim()) {
@@ -532,19 +534,19 @@ function updateSendBtn(value) {
     btn.textContent = '🎤';
   }
 }
-
+ 
 const input = document.getElementById('message-input');
-
+ 
 input.addEventListener('input', (e) => {
   updateSendBtn(e.target.value);
 });
-
+ 
 input.addEventListener('keypress', (e) => {
   if (e.key !== 'Enter') return;
   const enterSends = localStorage.getItem('enterSends') !== 'false';
   if (enterSends) doSend();
 });
-
+ 
 const sendBtn = document.getElementById('send-btn');
 sendBtn.addEventListener('click', () => {
   const text = document.getElementById('message-input').value.trim();
@@ -556,9 +558,9 @@ sendBtn.addEventListener('click', () => {
     stopRecording();
   }
 });
-
+ 
 updateSendBtn('');
-
+ 
 // EMOJIS
 const emojiData = {
   smileys: ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥸','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓'],
@@ -569,7 +571,7 @@ const emojiData = {
   travel: ['✈️','🚀','🛸','🚁','🛶','⛵','🚢','🚂','🚃','🚄','🚅','🚆','🚇','🚈','🚉','🚊','🚝','🚞','🚋','🚌','🚍','🚎','🚐','🚑','🚒','🚓','🚔','🚕','🚖','🚗'],
   symbols: ['💯','🔥','⭐','🌟','✨','💫','⚡','🌈','🎉','🎊','🎈','🎁','🏆','🥇','🎯','🎮','🎲','🃏','🀄','🎴','🔮','🧿','🪬','🧲','💡','🔍','🔑','🗝','🔐','🔒']
 };
-
+ 
 window.toggleEmoji = function() {
   const picker = document.getElementById('emoji-picker');
   picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
@@ -577,7 +579,7 @@ window.toggleEmoji = function() {
     showEmojiCat(document.querySelector('.emoji-cat.active'), 'smileys');
   }
 }
-
+ 
 window.showEmojiCat = function(btn, cat) {
   document.querySelectorAll('.emoji-cat').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -596,7 +598,51 @@ window.showEmojiCat = function(btn, cat) {
     grid.appendChild(btn);
   });
 }
-
+ 
+ 
+// ============ EXPORTER / VIDER LA DISCUSSION ============
+ 
+window.exportCurrentChat = async function() {
+  document.getElementById('chat-mini-menu').style.display = 'none';
+  try {
+    const snap = await getDocs(query(collection(db, 'conversations', convId, 'messages'), orderBy('createdAt', 'asc')));
+    const clearedAt = Number(localStorage.getItem('clearedAt_' + convId) || 0);
+    const lines = [];
+    snap.forEach(d => {
+      const m = d.data();
+      const ms = m.createdAt ? m.createdAt.toMillis() : 0;
+      if (ms <= clearedAt) return;
+      const when = m.createdAt ? m.createdAt.toDate().toLocaleString('fr-FR') : '';
+      const who = m.senderId === currentUser.uid ? 'Moi' : (otherName || 'Contact');
+      let body = m.text || '';
+      if (m.audio) body = '[Message vocal]';
+      else if (m.image) body = '[Photo]';
+      else if (m.document) body = '[Document : ' + m.docName + ']';
+      else if (m.location) body = '[Position : https://www.google.com/maps?q=' + m.location.lat + ',' + m.location.lng + ']';
+      else if (m.poll) body = '[Sondage : ' + m.poll.question + ']';
+      else if (m.event) body = '[Événement : ' + m.event.title + ']';
+      else if (m.catalogue) body = '[Produit : ' + m.catalogue.name + ']';
+      else if (m.contactCard) body = '[Contact : ' + m.contactCard.username + ']';
+      lines.push('[' + when + '] ' + who + ' : ' + body);
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Discussion Link Messenger - ' + (otherName || 'contact') + '.txt';
+    a.click();
+  } catch(e) {
+    console.error(e);
+    alert('Impossible d\'exporter la discussion.');
+  }
+}
+ 
+window.clearCurrentChat = function() {
+  document.getElementById('chat-mini-menu').style.display = 'none';
+  if (!confirm('Vider cette discussion sur cet appareil ? Les messages restent chez ton contact.')) return;
+  localStorage.setItem('clearedAt_' + convId, String(Date.now()));
+  document.getElementById('messages-container').innerHTML = '';
+}
+ 
 window.openCamera = function() {
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
@@ -604,21 +650,19 @@ window.openCamera = function() {
   fileInput.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file || !currentUser) return;
-    const viewOnce = confirm('Envoyer cette photo en vue unique (elle disparaîtra après avoir été vue) ?');
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const imageData = ev.target.result;
+      const imageData = await window.LM_compressDataUrl(ev.target.result);
       try {
         await addDoc(collection(db, 'conversations', convId, 'messages'), {
-          text: viewOnce ? '👁️ Photo vue unique' : '📷 Photo',
+          text: '📷 Photo',
           image: imageData,
-          viewOnce: viewOnce,
-          viewOnceOpened: false,
           senderId: currentUser.uid,
           read: false,
+          expiresAt: expiryField(),
           createdAt: serverTimestamp()
         });
-        await sendConvUpdate(viewOnce ? '👁️ Photo vue unique' : '📷 Photo');
+        await sendConvUpdate('📷 Photo');
       } catch(e) {
         console.error(e);
       }
@@ -627,36 +671,18 @@ window.openCamera = function() {
   };
   fileInput.click();
 }
-
-window.openViewOnce = async function(msgId) {
-  try {
-    const msgRef = doc(db, 'conversations', convId, 'messages', msgId);
-    const snap = await getDoc(msgRef);
-    if (!snap.exists()) return;
-    const data = snap.data();
-    if (!data.image || data.viewOnceOpened) return;
-    openModal(`
-      <h3>👁️ Photo vue unique</h3>
-      <img src="${data.image}" style="width:100%;border-radius:8px;margin-bottom:12px" />
-      <div class="modal-actions">
-        <button class="modal-btn-primary" onclick="closeModal()">Fermer</button>
-      </div>
-    `);
-    await updateDoc(msgRef, { viewOnceOpened: true, image: null });
-  } catch(e) { console.error(e); }
-}
-
+ 
 // ============ PANNEAU TROMBONE ============
-
+ 
 window.toggleAttachPanel = function() {
   const panel = document.getElementById('attach-panel');
   panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
-
+ 
 function closeAttachPanel() {
   document.getElementById('attach-panel').style.display = 'none';
 }
-
+ 
 async function sendConvUpdate(lastMessage) {
   await setDoc(doc(db, 'conversations', convId), {
     participants: [currentUser.uid, otherUserId],
@@ -665,35 +691,35 @@ async function sendConvUpdate(lastMessage) {
     [`unreadCount_${otherUserId}`]: increment(1)
   }, { merge: true });
 }
-
+ 
 // ---- MODALE GÉNÉRIQUE ----
 window.closeModal = function(event) {
   if (event && event.target.id !== 'modal-overlay') return;
   document.getElementById('modal-overlay').style.display = 'none';
   document.getElementById('modal-box').innerHTML = '';
 }
-
+ 
 function openModal(html) {
   document.getElementById('modal-box').innerHTML = html;
   document.getElementById('modal-overlay').style.display = 'flex';
 }
-
+ 
 // ---- 1. DOCUMENT ----
 window.attachDocument = function() {
   closeAttachPanel();
   document.getElementById('document-file').click();
 }
-
+ 
 window.handleDocumentFile = async function(event) {
   const file = event.target.files[0];
   event.target.value = '';
   if (!file || !currentUser) return;
-
+ 
   if (file.size > 5 * 1024 * 1024) {
     alert('Fichier trop volumineux (max 5 Mo) !');
     return;
   }
-
+ 
   const reader = new FileReader();
   reader.onload = async (ev) => {
     try {
@@ -704,6 +730,7 @@ window.handleDocumentFile = async function(event) {
         docSize: file.size,
         senderId: currentUser.uid,
         read: false,
+        expiresAt: expiryField(),
         createdAt: serverTimestamp()
       });
       await sendConvUpdate('📄 ' + file.name);
@@ -713,18 +740,18 @@ window.handleDocumentFile = async function(event) {
   };
   reader.readAsDataURL(file);
 }
-
+ 
 // ---- 2. GALERIE (multi-photos) ----
 window.attachGallery = function() {
   closeAttachPanel();
   document.getElementById('gallery-file').click();
 }
-
+ 
 window.handleGalleryFiles = async function(event) {
   const files = Array.from(event.target.files);
   event.target.value = '';
   if (!files.length || !currentUser) return;
-
+ 
   for (const file of files) {
     await new Promise((resolve) => {
       const reader = new FileReader();
@@ -732,9 +759,10 @@ window.handleGalleryFiles = async function(event) {
         try {
           await addDoc(collection(db, 'conversations', convId, 'messages'), {
             text: '🖼️ Photo',
-            image: ev.target.result,
+            image: await window.LM_compressDataUrl(ev.target.result),
             senderId: currentUser.uid,
             read: false,
+            expiresAt: expiryField(),
             createdAt: serverTimestamp()
           });
         } catch(e) {
@@ -747,7 +775,7 @@ window.handleGalleryFiles = async function(event) {
   }
   await sendConvUpdate(files.length > 1 ? `🖼️ ${files.length} photos` : '🖼️ Photo');
 }
-
+ 
 // ---- 3. CATALOGUE ----
 window.openCatalogue = function() {
   closeAttachPanel();
@@ -762,26 +790,27 @@ window.openCatalogue = function() {
     </div>
   `);
 }
-
+ 
 window.sendCatalogueItem = async function() {
   const name = document.getElementById('cat-name').value.trim();
   const price = document.getElementById('cat-price').value.trim();
   const desc = document.getElementById('cat-desc').value.trim();
   if (!name) { alert('Le nom du produit est requis !'); return; }
-
+ 
   try {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
       text: '',
       catalogue: { name, price, desc },
       senderId: currentUser.uid,
       read: false,
+      expiresAt: expiryField(),
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('🏬 ' + name);
     closeModal();
   } catch(e) { console.error(e); }
 }
-
+ 
 // ---- 4. RÉPONSE RAPIDE ----
 const quickReplies = [
   "Merci, à bientôt !",
@@ -791,7 +820,7 @@ const quickReplies = [
   "Pouvons-nous fixer un rendez-vous ?",
   "Désolé, je suis occupé là."
 ];
-
+ 
 window.openQuickReply = function() {
   closeAttachPanel();
   const items = quickReplies.map(r =>
@@ -805,7 +834,7 @@ window.openQuickReply = function() {
     </div>
   `);
 }
-
+ 
 window.useQuickReply = function(text) {
   const input = document.getElementById('message-input');
   input.value = text;
@@ -813,7 +842,7 @@ window.useQuickReply = function(text) {
   closeModal();
   input.focus();
 }
-
+ 
 // ---- 5. LOCALISATION ----
 window.attachLocation = function() {
   closeAttachPanel();
@@ -829,6 +858,7 @@ window.attachLocation = function() {
         location: { lat: latitude, lng: longitude },
         senderId: currentUser.uid,
         read: false,
+        expiresAt: expiryField(),
         createdAt: serverTimestamp()
       });
       await sendConvUpdate('📍 Position partagée');
@@ -837,25 +867,25 @@ window.attachLocation = function() {
     alert('Impossible d\'obtenir ta position. Vérifie les autorisations !');
   });
 }
-
+ 
 // ---- 6. CONTACT ----
 window.openContactPicker = async function() {
   closeAttachPanel();
   openModal(`<h3>👤 Choisir un contact</h3><p style="font-size:13px;color:#8696a0">Chargement...</p>`);
-
+ 
   try {
     const convsSnap = await getDocs(query(
       collection(db, 'conversations'),
       where('participants', 'array-contains', currentUser.uid)
     ));
-
+ 
     const others = [];
     for (const d of convsSnap.docs) {
       const data = d.data();
       const otherUid = data.participants.find(p => p !== currentUser.uid);
       if (otherUid && otherUid !== otherUserId) others.push(otherUid);
     }
-
+ 
     if (!others.length) {
       openModal(`
         <h3>👤 Choisir un contact</h3>
@@ -864,7 +894,7 @@ window.openContactPicker = async function() {
       `);
       return;
     }
-
+ 
     let html = `<h3>👤 Choisir un contact</h3>`;
     for (const uid of others) {
       const snap = await getDoc(doc(db, 'users', uid));
@@ -884,7 +914,7 @@ window.openContactPicker = async function() {
     closeModal();
   }
 }
-
+ 
 window.sendContactCard = async function(uid, username) {
   try {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
@@ -892,13 +922,14 @@ window.sendContactCard = async function(uid, username) {
       contactCard: { uid, username },
       senderId: currentUser.uid,
       read: false,
+      expiresAt: expiryField(),
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('👤 Contact : ' + username);
     closeModal();
   } catch(e) { console.error(e); }
 }
-
+ 
 // ---- 7. SONDAGE ----
 window.openPollCreator = function() {
   closeAttachPanel();
@@ -914,34 +945,35 @@ window.openPollCreator = function() {
     </div>
   `);
 }
-
+ 
 window.sendPoll = async function() {
   const question = document.getElementById('poll-question').value.trim();
   const opt1 = document.getElementById('poll-opt-1').value.trim();
   const opt2 = document.getElementById('poll-opt-2').value.trim();
   const opt3 = document.getElementById('poll-opt-3').value.trim();
-
+ 
   if (!question || !opt1 || !opt2) {
     alert('Question + au moins 2 options requises !');
     return;
   }
-
+ 
   const options = [opt1, opt2];
   if (opt3) options.push(opt3);
-
+ 
   try {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
       text: '',
       poll: { question, options, votes: {} },
       senderId: currentUser.uid,
       read: false,
+      expiresAt: expiryField(),
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('📊 Sondage : ' + question);
     closeModal();
   } catch(e) { console.error(e); }
 }
-
+ 
 window.voteOnPoll = async function(msgId, optionIndex) {
   try {
     const msgRef = doc(db, 'conversations', convId, 'messages', msgId);
@@ -953,7 +985,7 @@ window.voteOnPoll = async function(msgId, optionIndex) {
     await updateDoc(msgRef, { 'poll.votes': votes });
   } catch(e) { console.error(e); }
 }
-
+ 
 // ---- 8. ÉVÉNEMENT ----
 window.openEventCreator = function() {
   closeAttachPanel();
@@ -969,24 +1001,25 @@ window.openEventCreator = function() {
     </div>
   `);
 }
-
+ 
 window.sendEvent = async function() {
   const title = document.getElementById('evt-title').value.trim();
   const date = document.getElementById('evt-date').value;
   const time = document.getElementById('evt-time').value;
   const location = document.getElementById('evt-location').value.trim();
-
+ 
   if (!title || !date) {
     alert('Titre et date requis !');
     return;
   }
-
+ 
   try {
     await addDoc(collection(db, 'conversations', convId, 'messages'), {
       text: '',
       event: { title, date, time, location },
       senderId: currentUser.uid,
       read: false,
+      expiresAt: expiryField(),
       createdAt: serverTimestamp()
     });
     await sendConvUpdate('📅 ' + title);

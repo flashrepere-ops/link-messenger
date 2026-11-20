@@ -11,24 +11,24 @@
   <meta name="theme-color" content="#008069">
 </head>
 <body>
-
+ 
 <div class="app">
-
+ 
   <div class="header">
     <div class="header-left">
       <span class="app-name">🔵 Statuts</span>
     </div>
   </div>
-
+ 
   <div class="conversations" id="status-list">
     <div class="loading">
       <div class="spinner"></div>
       <p>Chargement...</p>
     </div>
   </div>
-
+ 
   <button class="fab" onclick="openStatusComposer()">📷</button>
-
+ 
   <!-- COMPOSITEUR DE STATUT -->
   <div class="status-composer-overlay" id="status-composer-overlay" style="display:none">
     <div class="status-composer-header">
@@ -40,7 +40,7 @@
         <button class="status-mode-tab active" id="mode-tab-photo" onclick="setComposerMode('photo')">📷 Photo</button>
         <button class="status-mode-tab" id="mode-tab-text" onclick="setComposerMode('text')">✏️ Texte</button>
       </div>
-
+ 
       <div id="composer-photo-mode">
         <div id="status-photo-preview" class="status-photo-preview">
           <button class="status-pick-photo-btn" onclick="document.getElementById('status-photo-input').click()">
@@ -49,16 +49,16 @@
         </div>
         <input type="text" id="status-caption" placeholder="Ajouter une légende..." />
       </div>
-
+ 
       <div id="composer-text-mode" style="display:none">
         <textarea id="status-text-content" placeholder="Quoi de neuf ?" rows="5"></textarea>
       </div>
-
+ 
       <button class="settings-btn" onclick="publishStatus()">Publier le statut</button>
     </div>
     <input type="file" id="status-photo-input" accept="image/*" style="display:none" onchange="handleStatusPhoto(event)" />
   </div>
-
+ 
   <!-- VISIONNEUSE DE STATUT -->
   <div class="status-viewer-overlay" id="status-viewer-overlay" style="display:none" onclick="closeStatusViewer(event)">
     <div class="status-viewer-box">
@@ -71,7 +71,7 @@
       <div class="status-viewer-content" id="status-viewer-content"></div>
     </div>
   </div>
-
+ 
   <div class="bottom-nav">
     <button class="nav-btn" onclick="window.location.href='home.html'">
       <span>💬</span>
@@ -90,9 +90,10 @@
       <span>Outils</span>
     </button>
   </div>
-
+ 
 </div>
-
+ 
+<script type="module" src="ui.js"></script>
 <script type="module" src="status.js"></script>
 </body>
 </html>

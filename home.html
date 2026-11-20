@@ -11,9 +11,9 @@
   <meta name="theme-color" content="#008069">
 </head>
 <body>
-
+ 
 <div class="app">
-
+ 
   <!-- HEADER -->
   <div class="header header-whatsapp">
     <div class="header-left">
@@ -25,7 +25,7 @@
       <button class="icon-btn" onclick="openSettings()">⚙️</button>
     </div>
   </div>
-
+ 
   <!-- BARRE SUPÉRIEURE DE SECTIONS -->
   <div class="top-section-bar">
     <button class="top-section-btn active">Discussions</button>
@@ -33,7 +33,7 @@
     <button class="top-section-btn" onclick="window.location.href='calls.html'">Appels</button>
     <button class="top-section-btn" onclick="window.location.href='settings.html'">Outils</button>
   </div>
-
+ 
   <!-- BARRE DE RECHERCHE -->
   <div id="search-box" style="display:none">
     <div class="search-bar">
@@ -43,27 +43,14 @@
     <button class="search-btn" onclick="searchUser()">Chercher</button>
     <div id="search-result"></div>
   </div>
-
+ 
   <!-- ONGLETS -->
   <div class="tabs-bar">
     <button class="tab-btn active" onclick="switchTab(this, 'all')">Toutes</button>
     <button class="tab-btn" onclick="switchTab(this, 'unread')">Non lues</button>
     <button class="tab-btn" onclick="switchTab(this, 'favorites')">Favoris</button>
   </div>
-
-  <!-- NOVA (IA) -->
-  <div class="conv-item" onclick="window.location.href='nova.html'">
-    <div class="avatar" style="background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);font-size:22px">✨</div>
-    <div class="conv-info">
-      <div class="conv-top">
-        <span class="conv-name">Nova</span>
-      </div>
-      <div class="conv-bottom">
-        <span class="conv-last-msg">Ton assistant IA — pose-moi une question !</span>
-      </div>
-    </div>
-  </div>
-
+ 
   <!-- LISTE DES CONVERSATIONS -->
   <div class="conversations" id="conversations-list">
     <div class="loading">
@@ -71,16 +58,16 @@
       <p>Chargement...</p>
     </div>
   </div>
-
+ 
   <!-- BOUTON ANNUAIRE -->
-  <button class="fab" onclick="openDirectory()">👤</button>
-
+  <button class="fab" onclick="openDirectory()">👥</button>
+ 
   <!-- PANNEAU ANNUAIRE DES UTILISATEURS -->
   <div class="directory-overlay" id="directory-overlay" style="display:none" onclick="closeDirectory(event)">
     <div class="directory-box">
       <div class="directory-header">
-        <span>👤 Utilisateurs inscrits</span>
-        <button class="directory-close" onclick="closeDirectory()">X</button>
+        <span>👥 Utilisateurs inscrits</span>
+        <button class="directory-close" onclick="closeDirectory()">✕</button>
       </div>
       <div class="directory-list" id="directory-list">
         <div class="loading">
@@ -90,7 +77,7 @@
       </div>
     </div>
   </div>
-
+ 
   <!-- BARRE DU BAS -->
   <div class="bottom-nav">
     <button class="nav-btn active" onclick="goToTab(this, 'home')">
@@ -110,9 +97,10 @@
       <span>Outils</span>
     </button>
   </div>
-
+ 
 </div>
-
+ 
+<script type="module" src="ui.js"></script>
 <script type="module" src="home.js"></script>
 </body>
 </html>

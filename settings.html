@@ -11,17 +11,17 @@
   <meta name="theme-color" content="#008069">
 </head>
 <body>
-
+ 
 <div class="settings-container">
-
+ 
   <!-- ===== VUE PRINCIPALE ===== -->
   <div id="view-main">
-
+ 
     <div class="settings-header">
       <button class="back-btn" onclick="window.history.back()">←</button>
       <span>Paramètres</span>
     </div>
-
+ 
     <!-- Profil rapide (toujours visible) -->
     <div class="settings-profile" onclick="openView('view-compte')">
       <div class="profile-avatar" id="profile-avatar">?</div>
@@ -31,10 +31,10 @@
       </div>
       <span style="color:#8696a0;font-size:20px">›</span>
     </div>
-
+ 
     <!-- Catégories -->
     <div class="settings-categories">
-
+ 
       <div class="settings-category-item" onclick="openView('view-compte')">
         <div class="cat-icon" style="background:#3b82f6">👤</div>
         <div class="cat-info">
@@ -43,7 +43,7 @@
         </div>
         <span class="cat-arrow">›</span>
       </div>
-
+ 
       <div class="settings-category-item" onclick="openView('view-confidentialite')">
         <div class="cat-icon" style="background:#10b981">🛡️</div>
         <div class="cat-info">
@@ -52,7 +52,7 @@
         </div>
         <span class="cat-arrow">›</span>
       </div>
-
+ 
       <div class="settings-category-item" onclick="openView('view-notifications')">
         <div class="cat-icon" style="background:#f59e0b">🔔</div>
         <div class="cat-info">
@@ -61,7 +61,7 @@
         </div>
         <span class="cat-arrow">›</span>
       </div>
-
+ 
       <div class="settings-category-item" onclick="openView('view-apparence')">
         <div class="cat-icon" style="background:#8b5cf6">🎨</div>
         <div class="cat-info">
@@ -70,7 +70,7 @@
         </div>
         <span class="cat-arrow">›</span>
       </div>
-
+ 
       <div class="settings-category-item" onclick="openView('view-donnees')">
         <div class="cat-icon" style="background:#f97316">📊</div>
         <div class="cat-info">
@@ -79,7 +79,7 @@
         </div>
         <span class="cat-arrow">›</span>
       </div>
-
+ 
       <div class="settings-category-item" onclick="openView('view-fonctionnalites')">
         <div class="cat-icon" style="background:#06b6d4">💬</div>
         <div class="cat-info">
@@ -88,7 +88,7 @@
         </div>
         <span class="cat-arrow">›</span>
       </div>
-
+ 
       <div class="settings-category-item" onclick="openView('view-avance')">
         <div class="cat-icon" style="background:#6b7280">🛠️</div>
         <div class="cat-info">
@@ -97,16 +97,34 @@
         </div>
         <span class="cat-arrow">›</span>
       </div>
-
+ 
+      <div class="settings-category-item" onclick="openView('view-accessibilite')">
+        <div class="cat-icon" style="background:#0ea5e9">♿</div>
+        <div class="cat-info">
+          <div class="cat-title">Accessibilité</div>
+          <div class="cat-sub">Contraste élevé, texte en gras</div>
+        </div>
+        <span class="cat-arrow">›</span>
+      </div>
+ 
+      <div class="settings-category-item" onclick="inviteFriend()">
+        <div class="cat-icon" style="background:#ec4899">📤</div>
+        <div class="cat-info">
+          <div class="cat-title">Inviter un ami</div>
+          <div class="cat-sub">Partager le lien de l'application</div>
+        </div>
+        <span class="cat-arrow">›</span>
+      </div>
+ 
     </div>
-
+ 
     <div style="padding:16px">
       <button class="settings-btn danger" onclick="logout()">🚪 Se déconnecter</button>
     </div>
-
+ 
   </div><!-- /view-main -->
-
-
+ 
+ 
   <!-- ===== VUE COMPTE & PROFIL ===== -->
   <div id="view-compte" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -138,12 +156,14 @@
         </div>
         <button class="settings-btn" onclick="changePassword()">🔑 Changer le mot de passe</button>
         <button class="settings-btn" onclick="sendVerificationEmail()">📧 Vérification email (2FA)</button>
+        <button class="settings-btn" onclick="inviteFriend()">📤 Inviter un ami</button>
+        <button class="settings-btn" onclick="exportAccountInfo()">📄 Exporter les infos de mon compte</button>
         <button class="settings-btn danger" onclick="deleteAccount()">🗑️ Supprimer mon compte</button>
       </div>
     </div>
   </div>
-
-
+ 
+ 
   <!-- ===== VUE CONFIDENTIALITÉ ===== -->
   <div id="view-confidentialite" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -198,13 +218,20 @@
         </div>
       </div>
       <div class="settings-section">
+        <div class="section-title">🔒 Verrouillage de l'application</div>
+        <p id="lock-status" style="font-size:13px;color:#8696a0">Désactivé</p>
+        <button class="settings-btn" onclick="setupAppLock()">🔒 Définir un code PIN</button>
+        <button class="settings-btn danger" onclick="disableAppLock()">🔓 Désactiver le verrouillage</button>
+        <p style="font-size:12px;color:#8696a0;line-height:1.5">Verrou local : il masque l'application à l'ouverture, sur cet appareil. Il ne chiffre pas tes données.</p>
+      </div>
+      <div class="settings-section">
         <div class="section-title">🚫 Utilisateurs bloqués</div>
         <div id="blocked-list"></div>
       </div>
     </div>
   </div>
-
-
+ 
+ 
   <!-- ===== VUE NOTIFICATIONS ===== -->
   <div id="view-notifications" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -223,6 +250,27 @@
         </div>
       </div>
       <div class="settings-section">
+        <div class="section-title">🎵 Tonalité des messages</div>
+        <div class="settings-item">
+          <label>Tonalité</label>
+          <select class="settings-select" id="notif-tone-select" onchange="saveNotifTone()">
+            <option value="cloche">Cloche</option>
+            <option value="carillon">Carillon</option>
+            <option value="pop">Pop</option>
+            <option value="bip">Double bip</option>
+            <option value="none">Aucune</option>
+          </select>
+        </div>
+        <button class="settings-btn" onclick="testNotifTone()">🔊 Écouter la tonalité</button>
+        <div class="settings-item toggle-item">
+          <span>Vibration à la réception</span>
+          <label class="toggle">
+            <input type="checkbox" id="vibrate-toggle" checked onchange="toggleVibrate()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="settings-section">
         <div class="section-title">🔊 Sons</div>
         <div class="settings-item toggle-item">
           <span>Sons activés</span>
@@ -234,8 +282,8 @@
       </div>
     </div>
   </div>
-
-
+ 
+ 
   <!-- ===== VUE APPARENCE ===== -->
   <div id="view-apparence" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -312,8 +360,8 @@
       </div>
     </div>
   </div>
-
-
+ 
+ 
   <!-- ===== VUE DONNÉES & STOCKAGE ===== -->
   <div id="view-donnees" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -321,6 +369,17 @@
       <span>Données, Stockage & Réseau</span>
     </div>
     <div class="settings-sections">
+      <div class="settings-section">
+        <div class="section-title">🖼️ Qualité d'envoi des photos</div>
+        <div class="settings-item">
+          <select class="settings-select" id="upload-quality-select" onchange="saveUploadQuality()">
+            <option value="saver">Économiseur de données</option>
+            <option value="standard">Standard</option>
+            <option value="hd">Haute qualité</option>
+          </select>
+        </div>
+        <p style="font-size:12px;color:#8696a0;line-height:1.5">Les photos sont réduites avant l'envoi (discussions, statuts, photo de profil).</p>
+      </div>
       <div class="settings-section">
         <div class="section-title">🔋 Économie d'énergie</div>
         <div class="settings-item toggle-item">
@@ -342,8 +401,8 @@
       </div>
     </div>
   </div>
-
-
+ 
+ 
   <!-- ===== VUE FONCTIONNALITÉS AVANCÉES ===== -->
   <div id="view-fonctionnalites" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -351,7 +410,7 @@
       <span>Fonctionnalités avancées</span>
     </div>
     <div class="settings-sections">
-
+ 
       <div class="settings-section">
         <div class="section-title">📋 Listes & Groupes</div>
         <label style="font-size:13px;color:#8696a0">Favoris</label>
@@ -360,7 +419,20 @@
         <div id="groups-list"></div>
         <button class="settings-btn" style="margin-top:8px" onclick="openGroupCreator()">➕ Créer un groupe</button>
       </div>
-
+ 
+      <div class="settings-section">
+        <div class="section-title">🗄️ Historique des discussions</div>
+        <div class="settings-item toggle-item">
+          <span>Garder les discussions archivées</span>
+          <label class="toggle">
+            <input type="checkbox" id="keep-archived-toggle" onchange="toggleKeepArchived()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <button class="settings-btn" onclick="archiveAllChats()">🗄️ Archiver toutes les discussions</button>
+        <button class="settings-btn danger" onclick="clearAllChats()">🗑️ Vider toutes les discussions</button>
+      </div>
+ 
       <div class="settings-section">
         <div class="section-title">📁 Dossiers de discussion</div>
         <div id="chat-folders-list"></div>
@@ -369,7 +441,7 @@
           <button class="settings-btn" style="width:auto;padding:10px 16px" onclick="createChatFolder()">➕</button>
         </div>
       </div>
-
+ 
       <div class="settings-section">
         <div class="section-title">🗂️ Épinglées / Archivées</div>
         <label style="font-size:13px;color:#8696a0">Épinglées</label>
@@ -377,7 +449,7 @@
         <label style="font-size:13px;color:#8696a0;margin-top:10px">Archivées</label>
         <div id="archived-list"></div>
       </div>
-
+ 
       <div class="settings-section">
         <div class="section-title">😊 Message d'accueil</div>
         <div class="settings-item toggle-item">
@@ -390,7 +462,7 @@
         <textarea id="greeting-text" rows="2" placeholder="Ton message d'accueil..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit;margin-top:4px"></textarea>
         <button class="settings-btn" onclick="saveGreetingMsg()">💾 Enregistrer</button>
       </div>
-
+ 
       <div class="settings-section">
         <div class="section-title">🌙 Message d'absence</div>
         <div class="settings-item toggle-item">
@@ -403,7 +475,7 @@
         <textarea id="away-text" rows="2" placeholder="Ton message d'absence..." style="width:100%;padding:10px 14px;border-radius:8px;border:none;background:#f0f2f5;font-size:14px;font-family:inherit;margin-top:4px"></textarea>
         <button class="settings-btn" onclick="saveAwayMsg()">💾 Enregistrer</button>
       </div>
-
+ 
       <div class="settings-section">
         <div class="section-title">⚡ Réponses rapides</div>
         <div id="quick-replies-list"></div>
@@ -412,11 +484,40 @@
           <button class="settings-btn" style="width:auto;padding:10px 16px" onclick="addQuickReply()">➕</button>
         </div>
       </div>
-
+ 
     </div>
   </div>
-
-
+ 
+ 
+  <!-- ===== VUE ACCESSIBILITÉ ===== -->
+  <div id="view-accessibilite" class="settings-subview" style="display:none">
+    <div class="settings-header">
+      <button class="back-btn" onclick="closeView()">←</button>
+      <span>Accessibilité</span>
+    </div>
+    <div class="settings-sections">
+      <div class="settings-section">
+        <div class="section-title">♿ Affichage</div>
+        <div class="settings-item toggle-item">
+          <span>Contraste élevé</span>
+          <label class="toggle">
+            <input type="checkbox" id="a11y-contrast-toggle" onchange="toggleA11yContrast()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-item toggle-item">
+          <span>Texte en gras</span>
+          <label class="toggle">
+            <input type="checkbox" id="a11y-bold-toggle" onchange="toggleA11yBold()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p style="font-size:12px;color:#8696a0;line-height:1.5">Pour réduire les animations, utilise « Économie d'énergie » dans Données, Stockage & Réseau. La taille du texte se règle dans Discussion & Apparence.</p>
+      </div>
+    </div>
+  </div>
+ 
+ 
   <!-- ===== VUE AVANCÉ / DÉVELOPPEUR ===== -->
   <div id="view-avance" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -432,14 +533,14 @@
       <div class="settings-section">
         <div class="section-title">❓ À propos</div>
         <p style="font-size:13px;color:#8696a0;line-height:1.6">
-          Link Messenger v2.1.0<br>
+          Link Messenger v2.0.0<br>
           Développé sur Firebase + GitHub Pages<br>
           Pour toute question, contacte le créateur directement.
         </p>
       </div>
     </div>
   </div>
-
+ 
   <!-- MODALE CRÉATION DE GROUPE -->
   <div class="modal-overlay" id="group-creator-overlay" style="display:none">
     <div class="modal-box">
@@ -447,11 +548,12 @@
       <div id="group-creator-body"></div>
     </div>
   </div>
-
+ 
   <div id="settings-msg" class="settings-msg"></div>
-
+ 
 </div><!-- /settings-container -->
-
+ 
+<script type="module" src="ui.js"></script>
 <script type="module" src="settings.js"></script>
 </body>
 </html>

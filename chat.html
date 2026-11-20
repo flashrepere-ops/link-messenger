@@ -11,9 +11,9 @@
   <meta name="theme-color" content="#008069">
 </head>
 <body>
-
+ 
 <div class="chat-container">
-
+ 
   <!-- HEADER -->
   <div class="chat-header">
     <button class="back-btn" onclick="window.history.back()">←</button>
@@ -31,10 +31,12 @@
         <button onclick="blockCurrentUser()">🚫 Bloquer</button>
         <button onclick="archiveCurrentConv()">🗄️ Archiver</button>
         <button onclick="pinCurrentConv()">📌 Épingler</button>
+        <button onclick="exportCurrentChat()">📤 Exporter la discussion</button>
+        <button onclick="clearCurrentChat()">🗑️ Vider la discussion</button>
       </div>
     </div>
   </div>
-
+ 
   <!-- PANNEAU TROMBONE -->
   <div class="attach-panel" id="attach-panel" style="display:none">
     <div class="attach-grip"></div>
@@ -73,22 +75,22 @@
       </button>
     </div>
   </div>
-
+ 
   <!-- MODALE GÉNÉRIQUE (catalogue / sondage / événement / contact / réponse rapide) -->
   <div class="modal-overlay" id="modal-overlay" style="display:none" onclick="closeModal(event)">
     <div class="modal-box" id="modal-box"></div>
   </div>
-
+ 
   <!-- INDICATEUR ENREGISTREMENT -->
   <div class="recording-indicator" id="recording-indicator" style="display:none">
     <div class="recording-dot"></div>
     <span>Enregistrement en cours...</span>
     <button onclick="cancelRecording()">✕</button>
   </div>
-
+ 
   <!-- MESSAGES -->
   <div class="messages-container" id="messages-container"></div>
-
+ 
   <!-- BARRE D'INPUT -->
   <div class="message-input-area">
     <button class="input-icon-btn" onclick="toggleAttachPanel()">📎</button>
@@ -100,12 +102,13 @@
     <button class="input-icon-btn" onclick="openCamera()">📷</button>
     <button class="send-btn" id="send-btn">🎤</button>
   </div>
-
+ 
   <input type="file" id="document-file" style="display:none" onchange="handleDocumentFile(event)" />
   <input type="file" id="gallery-file" accept="image/*" multiple style="display:none" onchange="handleGalleryFiles(event)" />
-
+ 
 </div>
-
+ 
+<script type="module" src="ui.js"></script>
 <script type="module" src="chat.js"></script>
 </body>
 </html>

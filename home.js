@@ -1,28 +1,28 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, query, where, onSnapshot, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+ 
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
 }
 if (localStorage.getItem('powerSaver') === 'true') {
   document.body.classList.add('power-saver');
 }
-
+ 
 let currentUser = null;
-
+ 
 const colors = ['#e53935','#8e24aa','#1e88e5','#00897b','#f4511e','#6d4c41','#00acc1','#43a047'];
-
+ 
 function getColor(name) {
   let sum = 0;
   for (let c of name) sum += c.charCodeAt(0);
   return colors[sum % colors.length];
 }
-
+ 
 function getInitials(name) {
   return name ? name.charAt(0).toUpperCase() : '?';
 }
-
+ 
 function timeAgo(timestamp) {
   if (!timestamp) return '';
   const date = timestamp.toDate();
@@ -37,7 +37,7 @@ function timeAgo(timestamp) {
   if (days < 7) return ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][date.getDay()];
   return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
 }
-
+ 
 function createAvatar(user) {
   if (user.avatar) {
     return `<div class="avatar" style="background-image:url('${user.avatar}');background-size:cover;background-position:center"></div>`;
@@ -46,14 +46,14 @@ function createAvatar(user) {
   const initials = getInitials(user.username);
   return `<div class="avatar" style="background:${color}">${initials}</div>`;
 }
-
+ 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = 'index.html';
     return;
   }
   currentUser = user;
-
+ 
   const userSnap = await getDoc(doc(db, 'users', user.uid));
   if (userSnap.exists()) {
     const userData = userSnap.data();
@@ -70,14 +70,14 @@ onAuthStateChanged(auth, async (user) => {
       }
     }
   }
-
+ 
   loadConversations();
 });
-
+ 
 window.openSettings = function() {
   window.location.href = 'settings.html';
 }
-
+ 
 window.showSearch = function() {
   const box = document.getElementById('search-box');
   box.style.display = box.style.display === 'none' ? 'block' : 'none';
@@ -85,17 +85,17 @@ window.showSearch = function() {
     document.getElementById('search-input').focus();
   }
 }
-
+ 
 window.switchTab = function(btn, tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   filterConversations(tab);
 }
-
+ 
 window.goToTab = function(btn, tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-
+ 
   if (tab === 'home') {
     // déjà sur home, rien à faire
   } else if (tab === 'calls') {
@@ -106,18 +106,18 @@ window.goToTab = function(btn, tab) {
     window.location.href = 'settings.html';
   }
 }
-
+ 
 let allConvs = [];
-
+ 
 function filterConversations(tab) {
   let filtered = allConvs;
-
+ 
   if (tab === 'unread') {
     filtered = allConvs.filter(c => c.unread > 0);
   } else if (tab === 'favorites') {
     filtered = allConvs.filter(c => c.favorite);
   }
-
+ 
   if (filtered.length === 0) {
     const list = document.getElementById('conversations-list');
     let msg = 'Aucune conversation';
@@ -131,16 +131,16 @@ function filterConversations(tab) {
     `;
     return;
   }
-
+ 
   renderConversations(filtered);
 }
-
+ 
 function renderConversations(convs) {
   const list = document.getElementById('conversations-list');
   list.innerHTML = '';
   let pinned = [];
   try { pinned = JSON.parse(localStorage.getItem('pinnedConvs')) || []; } catch(e) {}
-
+ 
   for (const c of convs) {
     const item = document.createElement('div');
     item.className = 'conv-item';
@@ -163,17 +163,17 @@ function renderConversations(convs) {
     list.appendChild(item);
   }
 }
-
+ 
 window.searchUser = async function() {
   const input = document.getElementById('search-input').value.trim();
   const resultDiv = document.getElementById('search-result');
   resultDiv.innerHTML = '<p style="color:#8696a0;padding:8px">Recherche...</p>';
-
+ 
   if (!input) {
     resultDiv.innerHTML = '<p style="color:#f15c6d;padding:8px">Entre un email ou username !</p>';
     return;
   }
-
+ 
   try {
     let snap = await getDocs(query(collection(db, 'users'), where('email', '==', input)));
     if (snap.empty) {
@@ -206,19 +206,19 @@ window.searchUser = async function() {
     resultDiv.innerHTML = '<p style="color:#f15c6d;padding:8px">Erreur !</p>';
   }
 }
-
+ 
 window.startChat = function(otherUid, otherUsername) {
   const ids = [currentUser.uid, otherUid].sort();
   const convId = ids.join('_');
   window.location.href = `chat.html?conv=${convId}&user=${otherUid}&name=${otherUsername}`;
 }
-
+ 
 window.openDirectory = async function() {
   const overlay = document.getElementById('directory-overlay');
   const list = document.getElementById('directory-list');
   overlay.style.display = 'flex';
   list.innerHTML = `<div class="loading"><div class="spinner"></div><p>Chargement...</p></div>`;
-
+ 
   try {
     const snap = await getDocs(collection(db, 'users'));
     const users = [];
@@ -226,14 +226,14 @@ window.openDirectory = async function() {
       const u = d.data();
       if (u.uid !== currentUser.uid) users.push(u);
     });
-
+ 
     if (!users.length) {
       list.innerHTML = `<p style="text-align:center;padding:24px;color:#8696a0">Aucun autre utilisateur inscrit pour le moment.</p>`;
       return;
     }
-
+ 
     users.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
-
+ 
     list.innerHTML = users.map(u => `
       <div class="directory-item">
         ${createAvatar(u)}
@@ -249,20 +249,20 @@ window.openDirectory = async function() {
     list.innerHTML = `<p style="text-align:center;padding:24px;color:#f15c6d">Erreur de chargement.</p>`;
   }
 }
-
+ 
 window.closeDirectory = function(event) {
   if (event && event.target.id !== 'directory-overlay') return;
   document.getElementById('directory-overlay').style.display = 'none';
 }
-
+ 
 function loadConversations() {
   const list = document.getElementById('conversations-list');
-
+ 
   const q = query(
     collection(db, 'conversations'),
     where('participants', 'array-contains', currentUser.uid)
   );
-
+ 
   onSnapshot(q, async (snap) => {
     if (snap.empty) {
       list.innerHTML = `
@@ -274,7 +274,7 @@ function loadConversations() {
       `;
       return;
     }
-
+ 
     allConvs = [];
     for (const d of snap.docs) {
       const data = d.data();
@@ -284,14 +284,15 @@ function loadConversations() {
       const unread = data[`unreadCount_${currentUser.uid}`] || 0;
       allConvs.push({ id: d.id, ...data, unread, otherUserId: otherUid, otherUser: userSnap.data() });
     }
-
+ 
     let archived = [];
     let pinned = [];
     try { archived = JSON.parse(localStorage.getItem('archivedConvs')) || []; } catch(e) {}
     try { pinned = JSON.parse(localStorage.getItem('pinnedConvs')) || []; } catch(e) {}
-
-    allConvs = allConvs.filter(c => !archived.includes(c.otherUserId));
-
+ 
+    const keepArchived = localStorage.getItem('keepArchived') === 'true';
+    allConvs = allConvs.filter(c => !archived.includes(c.otherUserId) || (!keepArchived && c.unread > 0));
+ 
     allConvs.sort((a, b) => {
       const aPinned = pinned.includes(a.otherUserId);
       const bPinned = pinned.includes(b.otherUserId);
@@ -299,7 +300,7 @@ function loadConversations() {
       if (!aPinned && bPinned) return 1;
       return (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0);
     });
-
+ 
     renderConversations(allConvs);
   });
 }
