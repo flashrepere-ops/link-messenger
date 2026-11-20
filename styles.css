@@ -127,25 +127,3 @@ nav.bar{position:fixed}
 .chip,.btn-g,.rb{box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7),inset 0 -2px 3px rgba(255,150,100,.5),0 6px 14px rgba(12,3,45,.28)}
 .chips{padding:6px 2px 14px}
 .pill{background:linear-gradient(135deg,rgba(255,255,255,.26),rgba(255,255,255,.07) 45%,rgba(255,150,100,.2))}
-
-/* ===== Bulle de navigation (style iOS) ===== */
-nav.bar a{position:relative;z-index:1}
-.nav-bubble{position:absolute;top:5px;bottom:5px;left:0;width:20%;transform:translateX(calc(var(--i,0)*100%));transition:transform .55s cubic-bezier(.34,1.56,.64,1),opacity .2s;pointer-events:none;z-index:0}
-.nav-bubble::before{content:"";position:absolute;inset:0 5px;border-radius:26px;background:radial-gradient(circle at 30% 18%,rgba(255,255,255,.75),transparent 48%),linear-gradient(135deg,rgba(255,255,255,.34),rgba(255,150,100,.4));box-shadow:inset 0 1.5px 1px rgba(255,255,255,.95),inset 0 -2px 5px rgba(255,130,80,.7),0 6px 18px rgba(255,107,53,.45)}
-.orb-img{display:block;animation:float 4s ease-in-out infinite}.orb-img:nth-child(2){animation-delay:.6s}.orb-img:nth-child(3){animation-delay:1.2s}.orb-img img{width:100%;display:block}
-.tiles.t4{grid-template-columns:1fr 1fr}.tile{color:var(--ink);font:inherit;cursor:pointer}
-.gold-card{background:linear-gradient(135deg,rgba(255,215,0,.22),rgba(255,107,53,.2))}.adv{margin:8px 0 12px;padding-left:20px;color:var(--gris2)}.adv li{margin:3px 0}
-.grid{display:block}
-/* ===== Mode ordinateur ===== */
-@media (min-width:900px){
- .app{max-width:none;padding:0 0 0 250px}
- .wrap{max-width:1100px;margin:0 auto;padding:28px 32px}
- nav.bar{left:16px;top:16px;bottom:16px;transform:none;width:218px;max-width:none;flex-direction:column;justify-content:flex-start;padding:10px;gap:4px;border-radius:30px}
- nav.bar a{flex:none;height:60px;display:flex;align-items:center;gap:12px;padding:0 18px;text-align:left;font-size:15px}
- nav.bar a span{display:inline-block}
- .nav-bubble{left:10px;right:10px;width:auto;height:60px;bottom:auto;top:calc(10px + var(--i,0)*64px);transform:none}
- .nav-bubble::before{inset:0}
- .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}
- .orbs{max-width:620px}.cover{margin:-28px -32px 14px}
- .tiles.t4{grid-template-columns:repeat(4,1fr)}
-}
