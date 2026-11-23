@@ -2,86 +2,205 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ⚠️ Remplace par TON email admin (le même que dans src/firebaseConfig.js)
-    function isAdmin() {
-      return request.auth != null && request.auth.token.email == "pilotepower2@gmail.com";
+    // ---------- Fonctions utiles ----------
+    function signedIn() { return request.auth != null; }
+    // Administrateur : même email que ADMIN_EMAIL dans firebaseConfig.js
+    function isAdmin() { return signedIn() && request.auth.token.email == "pilotepower2@gmail.com"; }
+    // Modérateurs : liste d'emails dans settings/roles (champ « mods »)
+    function isMod() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/settings/roles)
+        && request.auth.token.email in get(/databases/$(database)/documents/settings/roles).data.get("mods", []);
+    }
+    function staff() { return isAdmin() || isMod(); }
+    // Un compte bloqué par l'admin ne peut plus rien publier.
+    function notBlocked() {
+      return !exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        || !get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get("bloque", false);
     }
 
+    // ---------- BOUTIQUES ----------
     match /shops/{shopId} {
       allow read: if resource.data.statut == "valide"
-                  || (request.auth != null && resource.data.ownerId == request.auth.uid)
-                  || isAdmin();
-      allow create: if request.auth != null
+                  || (signedIn() && resource.data.ownerId == request.auth.uid)
+                  || staff();
+      allow create: if signedIn() && notBlocked()
                     && request.resource.data.ownerId == request.auth.uid
                     && request.resource.data.statut == "en_attente"
                     && request.resource.data.premium == false;
       allow update: if isAdmin()
-                    || (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["noteSum", "noteCount"]))
-                    || (request.auth != null
-                        && resource.data.ownerId == request.auth.uid
-                        && request.resource.data.statut == resource.data.statut
-                        && request.resource.data.premium == resource.data.premium
-                        && request.resource.data.ownerId == resource.data.ownerId);
+                    // Modérateur : valider et donner le badge Vérifié seulement.
+                    || (isMod() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["statut", "verifie"]))
+                    // Propriétaire : tout sauf les champs protégés.
+                    || (signedIn() && resource.data.ownerId == request.auth.uid
+                        && !request.resource.data.diff(resource.data).affectedKeys()
+                             .hasAny(["statut", "premium", "premium_fin", "ownerId", "noteSum", "noteCount", "verifie", "essai_utilise"]))
+                    // Note moyenne : un avis = +1, étoiles de 1 à 5.
+                    || (signedIn()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["noteSum", "noteCount"])
+                        && request.resource.data.noteCount == resource.data.get("noteCount", 0) + 1
+                        && request.resource.data.noteSum - resource.data.get("noteSum", 0) >= 1
+                        && request.resource.data.noteSum - resource.data.get("noteSum", 0) <= 5);
       allow delete: if isAdmin();
 
-      match /products/{pid} {
+      match /products/{productId} {
         allow read: if true;
-        allow write: if request.auth != null
-          && (get(/databases/$(database)/documents/shops/$(shopId)).data.ownerId == request.auth.uid || isAdmin());
+        allow write: if signedIn()
+                     && (get(/databases/$(database)/documents/shops/$(shopId)).data.ownerId == request.auth.uid || isAdmin());
       }
-      match /reviews/{rid} {
+
+      match /reviews/{reviewId} {
         allow read: if true;
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid
+        allow create: if signedIn() && notBlocked()
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.etoiles is number
                       && request.resource.data.etoiles >= 1 && request.resource.data.etoiles <= 5;
-        allow delete: if isAdmin();
+        allow delete: if staff() || (signedIn() && resource.data.userId == request.auth.uid);
       }
     }
 
-    match /orders/{oid} {
-      allow create: if request.auth != null && request.resource.data.clientId == request.auth.uid;
-      allow read: if (request.auth != null && (resource.data.clientId == request.auth.uid || resource.data.shopOwnerId == request.auth.uid)) || isAdmin();
-      allow update: if request.auth != null && resource.data.shopOwnerId == request.auth.uid
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["statut"]);
+    // ---------- VISITEURS ACTIFS EN DIRECT ----------
+    match /presence/{sessionId} {
+      allow create, update: if request.resource.data.keys().hasOnly(["t", "uid", "page"])
+                            && request.resource.data.t is number && sessionId.size() <= 24;
+      allow delete: if true;
+      allow read: if isAdmin();
     }
 
-    match /chats/{cid} {
-      allow read: if request.auth != null && (resource.data.clientId == request.auth.uid || resource.data.ownerId == request.auth.uid);
-      allow create, update: if request.auth != null && (request.resource.data.clientId == request.auth.uid || request.resource.data.ownerId == request.auth.uid);
-      match /msgs/{mid} {
-        allow read, create: if request.auth != null && (
-          get(/databases/$(database)/documents/chats/$(cid)).data.clientId == request.auth.uid ||
-          get(/databases/$(database)/documents/chats/$(cid)).data.ownerId == request.auth.uid);
-      }
+    // ---------- STATISTIQUES (vues, appels, WhatsApp) ----------
+    match /stats/{shopId} {
+      allow read: if isAdmin()
+                  || (signedIn() && get(/databases/$(database)/documents/shops/$(shopId)).data.ownerId == request.auth.uid);
+      allow create: if request.resource.data.keys().hasOnly(["vues", "appels", "wa"])
+                    && request.resource.data.get("vues", 0) <= 1
+                    && request.resource.data.get("appels", 0) <= 1
+                    && request.resource.data.get("wa", 0) <= 1;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(["vues", "appels", "wa"])
+                    && request.resource.data.get("vues", 0) - resource.data.get("vues", 0) <= 1
+                    && request.resource.data.get("appels", 0) - resource.data.get("appels", 0) <= 1
+                    && request.resource.data.get("wa", 0) - resource.data.get("wa", 0) <= 1;
     }
 
-    match /stories/{sid} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-      allow delete: if (request.auth != null && resource.data.ownerId == request.auth.uid) || isAdmin();
-    }
-
-    match /referrals/{uid} {
-      allow create: if request.auth != null && request.auth.uid == uid && request.resource.data.parrainId != uid;
-      allow read: if request.auth != null && (request.auth.uid == uid || resource.data.parrainId == request.auth.uid);
-    }
-
-    match /settings/{sid} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
+    // ---------- UTILISATEURS ----------
     match /users/{uid} {
-      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
-      allow write: if request.auth != null && request.auth.uid == uid;
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid && !("bloque" in request.resource.data);
+      allow update: if isAdmin()
+                    || (signedIn() && request.auth.uid == uid
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["bloque"]));
+      allow delete: if signedIn() && request.auth.uid == uid;
+
+      match /favorites/{favoriteId} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+      }
     }
 
-    match /emergencies/{v} {
+    // ---------- COMMANDES ----------
+    match /orders/{orderId} {
+      allow create: if signedIn() && notBlocked()
+                    && request.resource.data.clientId == request.auth.uid
+                    && request.resource.data.total is number
+                    && request.resource.data.total >= 0;
+      allow read: if signedIn()
+                  && (resource.data.clientId == request.auth.uid
+                      || resource.data.shopOwnerId == request.auth.uid
+                      || isAdmin());
+      allow update: if signedIn() && (
+                    // Le commerçant change le statut et le paiement.
+                    (resource.data.shopOwnerId == request.auth.uid
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["statut", "paye"])
+                      && request.resource.data.statut in ["envoyee", "recue", "preparation", "route", "livree", "annulee"])
+                    // Le client peut annuler tant que la commande n'est pas en préparation.
+                    || (resource.data.clientId == request.auth.uid
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["statut", "motif"])
+                      && request.resource.data.statut == "annulee"
+                      && resource.data.statut in ["envoyee", "recue"]));
+      allow delete: if isAdmin();
+    }
+
+    // ---------- CHAT ----------
+    // Identifiant d'une conversation : idBoutique_idClient
+    match /chats/{chatId} {
+      allow read: if signedIn()
+                  && (resource.data.clientId == request.auth.uid || resource.data.ownerId == request.auth.uid);
+      allow create: if signedIn()
+                    && (request.resource.data.clientId == request.auth.uid || request.resource.data.ownerId == request.auth.uid);
+      allow update: if signedIn()
+                    && (resource.data.clientId == request.auth.uid || resource.data.ownerId == request.auth.uid);
+
+      match /msgs/{messageId} {
+        allow read: if signedIn()
+                    && (chatId.split("_")[1] == request.auth.uid
+                        || get(/databases/$(database)/documents/shops/$(chatId.split("_")[0])).data.ownerId == request.auth.uid);
+        allow create: if signedIn() && notBlocked()
+                      && request.resource.data.from == request.auth.uid
+                      && (!("text" in request.resource.data) || (request.resource.data.text is string && request.resource.data.text.size() <= 1000))
+                      && (!("photo" in request.resource.data) || (request.resource.data.photo is string && request.resource.data.photo.size() <= 400000))
+                      && (chatId.split("_")[1] == request.auth.uid
+                          || get(/databases/$(database)/documents/shops/$(chatId.split("_")[0])).data.ownerId == request.auth.uid);
+      }
+    }
+
+    // ---------- SIGNALEMENTS ----------
+    match /reports/{reportId} {
+      allow create: if signedIn() && notBlocked()
+                    && request.resource.data.par == request.auth.uid
+                    && request.resource.data.motif is string && request.resource.data.motif.size() <= 300;
+      allow read, update, delete: if staff();
+    }
+
+    // ---------- DEMANDES D'ESSAI ET CODES PROMO ----------
+    match /demandes/{demandeId} {
+      allow create: if signedIn() && notBlocked()
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.type in ["essai", "code"];
+      allow read: if signedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- PAIEMENTS PREMIUM, JOURNAL, ERREURS (admin) ----------
+    match /paiements/{paymentId} {
+      allow read, write: if isAdmin();
+    }
+    match /journal/{logId} {
+      allow create: if staff();
+      allow read, delete: if isAdmin();
+    }
+    match /erreurs/{errorId} {
+      allow create: if request.resource.data.keys().hasOnly(["msg", "url", "uid", "date"])
+                    && request.resource.data.msg is string && request.resource.data.msg.size() <= 300;
+      allow read, delete: if isAdmin();
+    }
+
+    // ---------- BANNIÈRES SPONSORISÉES ----------
+    match /sponsors/{sponsorId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    match /users/{uid}/favorites/{fid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    // ---------- STORIES (24 h) ----------
+    match /stories/{storyId} {
+      allow read: if true;
+      allow create: if signedIn() && notBlocked() && request.resource.data.ownerId == request.auth.uid;
+      allow delete: if isAdmin() || (signedIn() && resource.data.ownerId == request.auth.uid);
+    }
+
+    // ---------- URGENCES ----------
+    match /emergencies/{cityId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------- PARRAINAGE ----------
+    match /referrals/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid && request.resource.data.parrainId != uid;
+      allow read: if signedIn() && (request.auth.uid == uid || resource.data.parrainId == request.auth.uid || isAdmin());
+    }
+
+    // ---------- RÉGLAGES (prix, contacts, annonce, modérateurs, métiers) ----------
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

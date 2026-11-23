@@ -24,6 +24,7 @@ const P = {
   trash: <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />,
   check: <><circle cx="12" cy="12" r="9" /><path d="M8 12l3 3 5-6" /></>,
   bolt: <path d="M13 3L5 14h6l-1 7 8-11h-6z" />,
+  send: <><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4z" /></>,
   sparkle: <path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" />,
   plus: <path d="M12 5v14M5 12h14" />,
   sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" /></>,
