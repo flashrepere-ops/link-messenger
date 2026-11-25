@@ -98,6 +98,24 @@
         <span class="cat-arrow">›</span>
       </div>
  
+      <div class="settings-category-item" onclick="openView('view-experience')">
+        <div class="cat-icon" style="background:#a855f7">✨</div>
+        <div class="cat-info">
+          <div class="cat-title">Dynamisme & Confort</div>
+          <div class="cat-sub">Animations, bulles, heures calmes, vocaux</div>
+        </div>
+        <span class="cat-arrow">›</span>
+      </div>
+ 
+      <div class="settings-category-item" id="admin-entry" style="display:none" onclick="window.location.href='admin.html'">
+        <div class="cat-icon" style="background:#eab308">👑</div>
+        <div class="cat-info">
+          <div class="cat-title">Administration</div>
+          <div class="cat-sub">Utilisateurs, annonces, modération</div>
+        </div>
+        <span class="cat-arrow">›</span>
+      </div>
+ 
       <div class="settings-category-item" onclick="openView('view-accessibilite')">
         <div class="cat-icon" style="background:#0ea5e9">♿</div>
         <div class="cat-info">
@@ -489,6 +507,129 @@
   </div>
  
  
+  <!-- ===== VUE DYNAMISME & CONFORT ===== -->
+  <div id="view-experience" class="settings-subview" style="display:none">
+    <div class="settings-header">
+      <button class="back-btn" onclick="closeView()">←</button>
+      <span>Dynamisme & Confort</span>
+    </div>
+    <div class="settings-sections">
+ 
+      <div class="settings-section">
+        <div class="section-title">✨ Dynamisme</div>
+        <div class="settings-item">
+          <label>Fluidité de l'interface</label>
+          <select class="settings-select" id="dynamism-select" onchange="savePref('dynamism', this.value)">
+            <option value="off">Désactivée</option>
+            <option value="soft">Douce</option>
+            <option value="intense">Intense</option>
+          </select>
+        </div>
+        <div class="settings-item toggle-item">
+          <span>Retour haptique (vibration au toucher)</span>
+          <label class="toggle">
+            <input type="checkbox" id="haptics-toggle" checked onchange="savePref('haptics', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p style="font-size:12px;color:#8696a0;line-height:1.5">Transitions entre pages, fond d'aurore animé et effets de ressort. Le retour haptique fonctionne sur Android (Chrome).</p>
+      </div>
+ 
+      <div class="settings-section">
+        <div class="section-title">💬 Bulles et texte</div>
+        <div class="settings-item">
+          <label>Arrondi des bulles</label>
+          <div class="settings-slider-row">
+            <input type="range" id="bubble-radius-slider" min="4" max="24" step="1" oninput="liveBubbleRadius(this.value)" onchange="savePref('bubbleRadius', this.value)" />
+            <span id="bubble-radius-value">12px</span>
+          </div>
+        </div>
+        <div class="settings-item">
+          <label>Police des messages</label>
+          <select class="settings-select" id="msg-font-select" onchange="savePref('msgFont', this.value)">
+            <option value="system">Système</option>
+            <option value="rounded">Arrondie</option>
+            <option value="serif">Avec empattements</option>
+            <option value="mono">Machine à écrire</option>
+          </select>
+        </div>
+        <div class="settings-item toggle-item">
+          <span>Affichage compact</span>
+          <label class="toggle">
+            <input type="checkbox" id="compact-toggle" onchange="savePref('compact', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+ 
+      <div class="settings-section">
+        <div class="section-title">📋 Liste des discussions</div>
+        <div class="settings-item toggle-item">
+          <span>Masquer les pastilles de messages non lus</span>
+          <label class="toggle">
+            <input type="checkbox" id="hide-badges-toggle" onchange="savePref('hideBadges', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-item toggle-item">
+          <span>Masquer l'aperçu des messages</span>
+          <label class="toggle">
+            <input type="checkbox" id="hide-preview-toggle" onchange="savePref('hidePreview', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+ 
+      <div class="settings-section">
+        <div class="section-title">🌙 Heures calmes</div>
+        <div class="settings-item toggle-item">
+          <span>Pas de son ni de vibration</span>
+          <label class="toggle">
+            <input type="checkbox" id="quiet-toggle" onchange="savePref('quietHours', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-item">
+          <label>De</label>
+          <input type="time" id="quiet-start" onchange="savePref('quietStart', this.value)" />
+        </div>
+        <div class="settings-item">
+          <label>À</label>
+          <input type="time" id="quiet-end" onchange="savePref('quietEnd', this.value)" />
+        </div>
+      </div>
+ 
+      <div class="settings-section">
+        <div class="section-title">🎤 Messages vocaux</div>
+        <div class="settings-item">
+          <label>Vitesse de lecture</label>
+          <select class="settings-select" id="voice-speed-select" onchange="savePref('voiceSpeed', this.value)">
+            <option value="1">×1</option>
+            <option value="1.5">×1,5</option>
+            <option value="2">×2</option>
+          </select>
+        </div>
+      </div>
+ 
+      <div class="settings-section">
+        <div class="section-title">🔒 Verrouillage automatique</div>
+        <div class="settings-item">
+          <label>Reverrouiller après être resté en arrière-plan</label>
+          <select class="settings-select" id="auto-lock-select" onchange="savePref('autoLockDelay', this.value)">
+            <option value="never">Seulement à l'ouverture</option>
+            <option value="0">Immédiatement</option>
+            <option value="60000">1 minute</option>
+            <option value="300000">5 minutes</option>
+            <option value="900000">15 minutes</option>
+          </select>
+        </div>
+        <p style="font-size:12px;color:#8696a0;line-height:1.5">Actif seulement si un code PIN est défini (Confidentialité & Sécurité).</p>
+      </div>
+ 
+    </div>
+  </div>
+ 
+ 
   <!-- ===== VUE ACCESSIBILITÉ ===== -->
   <div id="view-accessibilite" class="settings-subview" style="display:none">
     <div class="settings-header">
@@ -525,6 +666,11 @@
       <span>Avancé / Développeur</span>
     </div>
     <div class="settings-sections">
+      <div class="settings-section">
+        <div class="section-title">🔑 Mon identifiant (UID)</div>
+        <p id="my-uid" style="font-size:12px;color:#8696a0;word-break:break-all;user-select:all">...</p>
+        <button class="settings-btn" onclick="copyMyUid()">📋 Copier mon identifiant</button>
+      </div>
       <div class="settings-section">
         <div class="section-title">🔄 Réinitialisation</div>
         <button class="settings-btn" onclick="exportLogs()">📤 Exporter les logs</button>
