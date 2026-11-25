@@ -1,25 +1,25 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+ 
 let currentUser = null;
 let currentUserData = null;
-
+ 
 const colors = ['#e53935','#8e24aa','#1e88e5','#00897b','#f4511e','#6d4c41','#00acc1','#43a047'];
-
+ 
 function getColor(name) {
   let sum = 0;
   for (let c of name) sum += c.charCodeAt(0);
   return colors[sum % colors.length];
 }
-
+ 
 function showMsg(text, isError = false) {
   const msg = document.getElementById('settings-msg');
   msg.textContent = text;
   msg.style.color = isError ? '#f15c6d' : '#00a884';
   setTimeout(() => msg.textContent = '', 3000);
 }
-
+ 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = 'index.html';
@@ -32,8 +32,9 @@ onAuthStateChanged(auth, async (user) => {
     loadProfile();
   }
   loadSettings();
+  checkAdminAccess();
 });
-
+ 
 function loadProfile() {
   const name = currentUserData.username || '?';
   const status = currentUserData.status || "Hey, j'utilise Link Messenger !";
@@ -42,7 +43,7 @@ function loadProfile() {
   document.getElementById('profile-status').textContent = status;
   document.getElementById('new-username').value = name;
   document.getElementById('new-status').value = status;
-
+ 
   const avatar = document.getElementById('profile-avatar');
   if (currentUserData.avatar) {
     avatar.style.backgroundImage = `url(${currentUserData.avatar})`;
@@ -53,7 +54,7 @@ function loadProfile() {
     avatar.style.background = getColor(name);
   }
 }
-
+ 
 function loadSettings() {
   const dark = localStorage.getItem('darkMode') === 'true';
   if (dark) document.body.classList.add('dark-mode');
@@ -64,24 +65,24 @@ function loadSettings() {
   const fontSize = localStorage.getItem('fontSize') || '14';
   document.documentElement.style.setProperty('--msg-font-size', fontSize + 'px');
 }
-
+ 
 window.saveProfile = async function() {
   const username = document.getElementById('new-username').value.trim();
   const status = document.getElementById('new-status').value.trim();
   const avatarFile = document.getElementById('avatar-file').files[0];
-
+ 
   if (!username) {
     showMsg('Le nom ne peut pas être vide !', true);
     return;
   }
-
+ 
   try {
     let avatarUrl = currentUserData.avatar || '';
-
+ 
     if (avatarFile) {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        avatarUrl = e.target.result;
+        avatarUrl = await window.LM_compressDataUrl(e.target.result, 400);
         await updateDoc(doc(db, 'users', currentUser.uid), {
           username, status, avatar: avatarUrl
         });
@@ -106,7 +107,7 @@ window.saveProfile = async function() {
     showMsg('Erreur : ' + e.message, true);
   }
 }
-
+ 
 window.changePassword = async function() {
   const newPass = document.getElementById('new-password').value;
   if (!newPass || newPass.length < 6) {
@@ -121,7 +122,7 @@ window.changePassword = async function() {
     showMsg('Erreur : reconnecte-toi et réessaie !', true);
   }
 }
-
+ 
 window.deleteAccount = async function() {
   if (!confirm('Supprimer définitivement ton compte ? Cette action est irréversible !')) return;
   try {
@@ -132,7 +133,7 @@ window.deleteAccount = async function() {
     showMsg('Erreur : reconnecte-toi et réessaie !', true);
   }
 }
-
+ 
 window.toggleTheme = function() {
   const dark = document.getElementById('dark-mode-toggle').checked;
   localStorage.setItem('darkMode', dark);
@@ -142,13 +143,13 @@ window.toggleTheme = function() {
     document.body.classList.remove('dark-mode');
   }
 }
-
+ 
 window.toggleSound = function() {
   const sound = document.getElementById('sound-toggle').checked;
   localStorage.setItem('sound', sound);
   showMsg(sound ? '🔊 Sons activés' : '🔇 Sons désactivés');
 }
-
+ 
 window.selectWallpaper = function(name) {
   localStorage.setItem('wallpaper', name);
   localStorage.removeItem('wallpaperCustom');
@@ -157,7 +158,7 @@ window.selectWallpaper = function(name) {
   });
   showMsg('🖼️ Fond d\'écran mis à jour !');
 }
-
+ 
 window.uploadWallpaper = function(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -172,15 +173,15 @@ window.uploadWallpaper = function(event) {
   };
   reader.readAsDataURL(file);
 }
-
+ 
 window.toggleNotif = function() {
   const notif = document.getElementById('notif-toggle').checked;
   localStorage.setItem('notif', notif);
   showMsg(notif ? '🔔 Alertes activées' : '🔕 Alertes désactivées');
 }
-
+ 
 // ============ MESSAGE D'ACCUEIL / ABSENCE ============
-
+ 
 window.saveGreetingMsg = async function() {
   const enabled = document.getElementById('greeting-toggle').checked;
   const text = document.getElementById('greeting-text').value.trim();
@@ -194,7 +195,7 @@ window.saveGreetingMsg = async function() {
     showMsg('Erreur : ' + e.message, true);
   }
 }
-
+ 
 window.saveAwayMsg = async function() {
   const enabled = document.getElementById('away-toggle').checked;
   const text = document.getElementById('away-text').value.trim();
@@ -208,9 +209,9 @@ window.saveAwayMsg = async function() {
     showMsg('Erreur : ' + e.message, true);
   }
 }
-
+ 
 // ============ RÉPONSES RAPIDES (gestion centralisée) ============
-
+ 
 function getQuickReplies() {
   try {
     return JSON.parse(localStorage.getItem('quickReplies')) || [
@@ -225,11 +226,11 @@ function getQuickReplies() {
     return [];
   }
 }
-
+ 
 function saveQuickReplies(list) {
   localStorage.setItem('quickReplies', JSON.stringify(list));
 }
-
+ 
 function loadQuickRepliesList() {
   const list = getQuickReplies();
   const container = document.getElementById('quick-replies-list');
@@ -241,7 +242,7 @@ function loadQuickRepliesList() {
     </div>
   `).join('');
 }
-
+ 
 window.addQuickReply = function() {
   const input = document.getElementById('new-quick-reply');
   const text = input.value.trim();
@@ -253,32 +254,32 @@ window.addQuickReply = function() {
   loadQuickRepliesList();
   showMsg('⚡ Réponse rapide ajoutée !');
 }
-
+ 
 window.removeQuickReply = function(index) {
   const list = getQuickReplies();
   list.splice(index, 1);
   saveQuickReplies(list);
   loadQuickRepliesList();
 }
-
+ 
 // ============ LISTES : FAVORIS ============
-
+ 
 function getFavorites() {
   try {
     return JSON.parse(localStorage.getItem('favoriteContacts')) || [];
   } catch(e) { return []; }
 }
-
+ 
 async function loadFavorites() {
   const favIds = getFavorites();
   const container = document.getElementById('favorites-list');
   if (!container) return;
-
+ 
   if (!favIds.length) {
     container.innerHTML = `<p style="font-size:13px;color:#8696a0">Aucun favori. Ajoute-en depuis une conversation.</p>`;
     return;
   }
-
+ 
   let html = '';
   for (const uid of favIds) {
     try {
@@ -295,20 +296,20 @@ async function loadFavorites() {
   }
   container.innerHTML = html || `<p style="font-size:13px;color:#8696a0">Aucun favori.</p>`;
 }
-
+ 
 window.removeFavorite = function(uid) {
   const list = getFavorites().filter(id => id !== uid);
   localStorage.setItem('favoriteContacts', JSON.stringify(list));
   loadFavorites();
 }
-
+ 
 // ============ LISTES : GROUPES ============
-
+ 
 window.openGroupCreator = async function() {
   const modalBody = document.getElementById('group-creator-body');
   modalBody.innerHTML = `<p style="font-size:13px;color:#8696a0">Chargement des utilisateurs...</p>`;
   document.getElementById('group-creator-overlay').style.display = 'flex';
-
+ 
   try {
     const snap = await getDocs(collection(db, 'users'));
     const users = [];
@@ -316,12 +317,12 @@ window.openGroupCreator = async function() {
       const u = d.data();
       if (u.uid !== currentUser.uid) users.push(u);
     });
-
+ 
     if (!users.length) {
       modalBody.innerHTML = `<p style="font-size:13px;color:#8696a0">Aucun autre utilisateur disponible.</p>`;
       return;
     }
-
+ 
     modalBody.innerHTML = `
       <input type="text" id="group-name-input" placeholder="Nom du groupe" />
       <div class="group-member-list">
@@ -342,21 +343,21 @@ window.openGroupCreator = async function() {
     modalBody.innerHTML = `<p style="font-size:13px;color:#f15c6d">Erreur de chargement.</p>`;
   }
 }
-
+ 
 window.closeGroupCreator = function() {
   document.getElementById('group-creator-overlay').style.display = 'none';
 }
-
+ 
 window.createGroup = async function() {
   const name = document.getElementById('group-name-input').value.trim();
   const checked = Array.from(document.querySelectorAll('.group-member-row input:checked'));
-
+ 
   if (!name) { alert('Le nom du groupe est requis !'); return; }
   if (checked.length < 2) { alert('Choisis au moins 2 membres !'); return; }
-
+ 
   const memberIds = checked.map(c => c.value);
   const memberNames = checked.map(c => c.dataset.username);
-
+ 
   try {
     const groupRef = await addDoc(collection(db, 'groups'), {
       name,
@@ -373,11 +374,11 @@ window.createGroup = async function() {
     showMsg('Erreur lors de la création du groupe.', true);
   }
 }
-
+ 
 async function loadGroups() {
   const container = document.getElementById('groups-list');
   if (!container) return;
-
+ 
   try {
     const snap = await getDocs(query(collection(db, 'groups'), where('members', 'array-contains', currentUser.uid)));
     if (snap.empty) {
@@ -399,29 +400,29 @@ async function loadGroups() {
     container.innerHTML = `<p style="font-size:13px;color:#f15c6d">Erreur de chargement.</p>`;
   }
 }
-
+ 
 window.openGroup = function(groupId, groupName) {
   window.location.href = `group.html?id=${groupId}&name=${encodeURIComponent(groupName)}`;
 }
-
+ 
 // ============ CONFIDENTIALITÉ : BLOCAGE ============
-
+ 
 function getBlockedUsers() {
   try {
     return JSON.parse(localStorage.getItem('blockedUsers')) || [];
   } catch(e) { return []; }
 }
-
+ 
 async function loadBlockedUsers() {
   const container = document.getElementById('blocked-list');
   if (!container) return;
   const ids = getBlockedUsers();
-
+ 
   if (!ids.length) {
     container.innerHTML = `<p style="font-size:13px;color:#8696a0">Aucun utilisateur bloqué.</p>`;
     return;
   }
-
+ 
   let html = '';
   for (const uid of ids) {
     try {
@@ -438,30 +439,30 @@ async function loadBlockedUsers() {
   }
   container.innerHTML = html || `<p style="font-size:13px;color:#8696a0">Aucun utilisateur bloqué.</p>`;
 }
-
+ 
 window.unblockUser = function(uid) {
   const list = getBlockedUsers().filter(id => id !== uid);
   localStorage.setItem('blockedUsers', JSON.stringify(list));
   loadBlockedUsers();
   showMsg('✅ Utilisateur débloqué !');
 }
-
+ 
 window.toggleReadReceipts = function() {
   const enabled = document.getElementById('read-receipts-toggle').checked;
   localStorage.setItem('readReceipts', enabled);
   showMsg(enabled ? '✓✓ Accusés de lecture activés' : '✓✓ Accusés de lecture désactivés');
 }
-
+ 
 // ============ DOSSIERS D'ÉCHANGES : ÉPINGLÉS / ARCHIVÉS ============
-
+ 
 function getPinned() {
   try { return JSON.parse(localStorage.getItem('pinnedConvs')) || []; } catch(e) { return []; }
 }
-
+ 
 function getArchived() {
   try { return JSON.parse(localStorage.getItem('archivedConvs')) || []; } catch(e) { return []; }
 }
-
+ 
 async function loadPinnedList() {
   const container = document.getElementById('pinned-list');
   if (!container) return;
@@ -480,7 +481,7 @@ async function loadPinnedList() {
   }
   container.innerHTML = html || `<p style="font-size:13px;color:#8696a0">Aucune discussion épinglée.</p>`;
 }
-
+ 
 async function loadArchivedList() {
   const container = document.getElementById('archived-list');
   if (!container) return;
@@ -499,28 +500,29 @@ async function loadArchivedList() {
   }
   container.innerHTML = html || `<p style="font-size:13px;color:#8696a0">Aucune discussion archivée.</p>`;
 }
-
+ 
 window.unpinConv = function(uid) {
   const list = getPinned().filter(id => id !== uid);
   localStorage.setItem('pinnedConvs', JSON.stringify(list));
   loadPinnedList();
 }
-
+ 
 window.unarchiveConv = function(uid) {
   const list = getArchived().filter(id => id !== uid);
   localStorage.setItem('archivedConvs', JSON.stringify(list));
   loadArchivedList();
   showMsg('✅ Discussion restaurée !');
 }
-
+ 
 // ============ NAVIGATION ENTRE VUES ============
-
+ 
 window.openView = function(viewId) {
   document.getElementById('view-main').style.display = 'none';
   document.querySelectorAll('.settings-subview').forEach(v => v.style.display = 'none');
   const target = document.getElementById(viewId);
   if (target) {
     target.style.display = 'block';
+    loadExtraViewState(viewId);
     if (viewId === 'view-confidentialite') {
       loadBlockedUsers();
       document.getElementById('last-seen-select').value = currentUserData?.lastSeenPrivacy || 'everyone';
@@ -570,14 +572,14 @@ window.openView = function(viewId) {
     }
   }
 }
-
+ 
 window.closeView = function() {
   document.querySelectorAll('.settings-subview').forEach(v => v.style.display = 'none');
   document.getElementById('view-main').style.display = 'block';
 }
-
+ 
 // ============ STOCKAGE & AVANCÉ ============
-
+ 
 function estimateStorageUsage() {
   const el = document.getElementById('storage-info');
   if (!el) return;
@@ -594,7 +596,7 @@ function estimateStorageUsage() {
     el.textContent = 'Impossible de calculer le stockage.';
   }
 }
-
+ 
 window.clearAppCache = function() {
   if (!confirm('Vider le cache ? Cela ne supprimera pas tes messages ni ton compte.')) return;
   const keepsake = ['darkMode', 'themeMode', 'accentColor', 'fontSize', 'wallpaper', 'wallpaperCustom', 'sound', 'notif', 'powerSaver', 'enterSends', 'giantEmoji', 'readReceipts', 'autoDeleteTimer', 'blockedUsers', 'favoriteContacts', 'pinnedConvs', 'archivedConvs', 'quickReplies', 'chatFolders'];
@@ -605,7 +607,7 @@ window.clearAppCache = function() {
   showMsg('🗑️ Cache vidé !');
   estimateStorageUsage();
 }
-
+ 
 window.exportLogs = function() {
   const logs = {
     timestamp: new Date().toISOString(),
@@ -622,7 +624,7 @@ window.exportLogs = function() {
   a.click();
   showMsg('📤 Logs exportés !');
 }
-
+ 
 window.resetAllSettings = function() {
   if (!confirm('Réinitialiser TOUS les paramètres ? Cette action est irréversible.')) return;
   const keep = ['blockedUsers', 'favoriteContacts', 'pinnedConvs', 'archivedConvs', 'quickReplies', 'chatFolders'];
@@ -633,9 +635,9 @@ window.resetAllSettings = function() {
   showMsg('✅ Paramètres réinitialisés !');
   setTimeout(() => window.location.reload(), 1000);
 }
-
+ 
 // ============ CONFIDENTIALITÉ AVANCÉE ============
-
+ 
 window.saveLastSeenSetting = async function() {
   const value = document.getElementById('last-seen-select').value;
   try {
@@ -644,7 +646,7 @@ window.saveLastSeenSetting = async function() {
     showMsg('✅ Préférence enregistrée !');
   } catch(e) { showMsg('Erreur : ' + e.message, true); }
 }
-
+ 
 window.saveProfileVisibility = async function() {
   const value = document.getElementById('profile-visibility-select').value;
   try {
@@ -653,7 +655,7 @@ window.saveProfileVisibility = async function() {
     showMsg('✅ Préférence enregistrée !');
   } catch(e) { showMsg('Erreur : ' + e.message, true); }
 }
-
+ 
 window.saveGroupAddSetting = async function() {
   const value = document.getElementById('group-add-select').value;
   try {
@@ -662,13 +664,13 @@ window.saveGroupAddSetting = async function() {
     showMsg('✅ Préférence enregistrée !');
   } catch(e) { showMsg('Erreur : ' + e.message, true); }
 }
-
+ 
 window.saveAutoDeleteSetting = function() {
   const value = document.getElementById('auto-delete-select').value;
   localStorage.setItem('autoDeleteTimer', value);
   showMsg(value === 'off' ? '✅ Auto-suppression désactivée' : '⏱️ Auto-suppression activée');
 }
-
+ 
 window.sendVerificationEmail = async function() {
   try {
     const { sendEmailVerification } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
@@ -678,13 +680,13 @@ window.sendVerificationEmail = async function() {
     showMsg('Erreur : ' + e.message, true);
   }
 }
-
+ 
 // ============ THÈME, ACCENT, TAILLE DE TEXTE ============
-
+ 
 window.saveThemeMode = function() {
   const mode = document.getElementById('theme-mode-select').value;
   localStorage.setItem('themeMode', mode);
-
+ 
   if (mode === 'system') {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     localStorage.setItem('darkMode', prefersDark);
@@ -699,11 +701,11 @@ window.saveThemeMode = function() {
   document.getElementById('dark-mode-toggle').checked = document.body.classList.contains('dark-mode');
   showMsg('🎨 Thème mis à jour !');
 }
-
+ 
 function applyAccentColor(color) {
   document.documentElement.style.setProperty('--accent-color', color);
 }
-
+ 
 window.selectAccentColor = function(color) {
   localStorage.setItem('accentColor', color);
   applyAccentColor(color);
@@ -712,39 +714,39 @@ window.selectAccentColor = function(color) {
   });
   showMsg('🎨 Couleur d\'accent mise à jour !');
 }
-
+ 
 function applyFontSize(size) {
   document.documentElement.style.setProperty('--msg-font-size', size + 'px');
 }
-
+ 
 window.liveUpdateFontSize = function(size) {
   document.getElementById('font-size-value').textContent = size + 'px';
   applyFontSize(size);
 }
-
+ 
 window.saveFontSize = function(size) {
   localStorage.setItem('fontSize', size);
   showMsg('🔤 Taille du texte enregistrée !');
 }
-
+ 
 window.toggleEnterSends = function() {
   const enabled = document.getElementById('enter-sends-toggle').checked;
   localStorage.setItem('enterSends', enabled);
   showMsg(enabled ? '⏎ Entrée envoie le message' : '⏎ Entrée crée une nouvelle ligne');
 }
-
+ 
 window.toggleGiantEmoji = function() {
   const enabled = document.getElementById('giant-emoji-toggle').checked;
   localStorage.setItem('giantEmoji', enabled);
   showMsg(enabled ? '😀 Émojis géants activés' : '😀 Émojis géants désactivés');
 }
-
+ 
 // ============ DOSSIERS DE DISCUSSION ============
-
+ 
 function getChatFolders() {
   try { return JSON.parse(localStorage.getItem('chatFolders')) || ['Personnel', 'Travail']; } catch(e) { return []; }
 }
-
+ 
 function loadChatFolders() {
   const container = document.getElementById('chat-folders-list');
   if (!container) return;
@@ -760,7 +762,7 @@ function loadChatFolders() {
     </div>
   `).join('');
 }
-
+ 
 window.createChatFolder = function() {
   const input = document.getElementById('new-folder-name');
   const name = input.value.trim();
@@ -772,26 +774,235 @@ window.createChatFolder = function() {
   loadChatFolders();
   showMsg('📁 Dossier créé !');
 }
-
+ 
 window.removeChatFolder = function(index) {
   const folders = getChatFolders();
   folders.splice(index, 1);
   localStorage.setItem('chatFolders', JSON.stringify(folders));
   loadChatFolders();
 }
-
+ 
 // ============ ÉCONOMIE D'ÉNERGIE ============
-
+ 
 window.togglePowerSaver = function() {
   const enabled = document.getElementById('power-saver-toggle').checked;
   localStorage.setItem('powerSaver', enabled);
   document.body.classList.toggle('power-saver', enabled);
   showMsg(enabled ? '🔋 Économie d\'énergie activée' : '✅ Économie d\'énergie désactivée');
 }
-
+ 
 window.logout = async function() {
   if (confirm('Se déconnecter ?')) {
     await signOut(auth);
     window.location.href = 'index.html';
+  }
+}
+ 
+ 
+// ============ NOUVEAUX RÉGLAGES ============
+ 
+function downloadFile(name, content, type) {
+  const blob = new Blob([content], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+ 
+function loadExtraViewState(viewId) {
+  if (viewId === 'view-confidentialite') refreshLockStatus();
+  if (viewId === 'view-experience') loadExperienceState();
+  if (viewId === 'view-notifications') {
+    document.getElementById('notif-tone-select').value = localStorage.getItem('notifTone') || 'cloche';
+    document.getElementById('vibrate-toggle').checked = localStorage.getItem('vibrate') !== 'false';
+  }
+  if (viewId === 'view-donnees') {
+    document.getElementById('upload-quality-select').value = localStorage.getItem('uploadQuality') || 'standard';
+  }
+  if (viewId === 'view-fonctionnalites') {
+    document.getElementById('keep-archived-toggle').checked = localStorage.getItem('keepArchived') === 'true';
+  }
+  if (viewId === 'view-accessibilite') {
+    document.getElementById('a11y-contrast-toggle').checked = localStorage.getItem('a11yContrast') === 'true';
+    document.getElementById('a11y-bold-toggle').checked = localStorage.getItem('a11yBold') === 'true';
+  }
+}
+ 
+// ---- Inviter un ami / infos du compte ----
+window.inviteFriend = async function() {
+  const url = new URL('index.html', window.location.href).href;
+  const text = 'Rejoins-moi sur Link Messenger !';
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Link Messenger', text, url });
+      return;
+    }
+    await navigator.clipboard.writeText(text + ' ' + url);
+    showMsg('🔗 Lien d\'invitation copié !');
+  } catch(e) { /* partage annulé */ }
+}
+ 
+window.exportAccountInfo = function() {
+  const data = Object.assign({}, currentUserData);
+  delete data.avatar;
+  data.uid = currentUser.uid;
+  data.email = currentUser.email;
+  data.exportedAt = new Date().toISOString();
+  downloadFile('link-messenger-infos-compte.json', JSON.stringify(data, null, 2), 'application/json');
+  showMsg('📤 Infos du compte exportées !');
+}
+ 
+// ---- Verrouillage par code PIN ----
+function refreshLockStatus() {
+  const el = document.getElementById('lock-status');
+  if (el) el.textContent = window.AppLock.isEnabled() ? 'Activé : un code PIN est demandé à chaque ouverture.' : 'Désactivé';
+}
+ 
+window.setupAppLock = async function() {
+  const pin = prompt('Choisis un code PIN à 4 chiffres :');
+  if (pin === null) return;
+  if (!/^\d{4}$/.test(pin)) { showMsg('Le code doit contenir exactement 4 chiffres.', true); return; }
+  const again = prompt('Confirme ton code PIN :');
+  if (again !== pin) { showMsg('Les deux codes sont différents.', true); return; }
+  await window.AppLock.setPin(pin);
+  refreshLockStatus();
+  showMsg('🔒 Verrouillage activé !');
+}
+ 
+window.disableAppLock = async function() {
+  if (!window.AppLock.isEnabled()) { showMsg('Le verrouillage est déjà désactivé.'); return; }
+  const pin = prompt('Entre ton code PIN pour désactiver le verrouillage :');
+  if (pin === null) return;
+  const ok = await window.AppLock.disable(pin);
+  refreshLockStatus();
+  showMsg(ok ? '🔓 Verrouillage désactivé !' : 'Code incorrect.', !ok);
+}
+ 
+// ---- Notifications : tonalité + vibration ----
+window.saveNotifTone = function() {
+  const tone = document.getElementById('notif-tone-select').value;
+  localStorage.setItem('notifTone', tone);
+  if (tone !== 'none') window.LM_playTone(tone);
+  showMsg('🎵 Tonalité enregistrée !');
+}
+ 
+window.testNotifTone = function() {
+  const tone = localStorage.getItem('notifTone') || 'cloche';
+  if (tone === 'none') { showMsg('Aucune tonalité sélectionnée.'); return; }
+  window.LM_playTone(tone);
+}
+ 
+window.toggleVibrate = function() {
+  const on = document.getElementById('vibrate-toggle').checked;
+  localStorage.setItem('vibrate', on);
+  if (on && navigator.vibrate) navigator.vibrate(200);
+  showMsg(on ? '📳 Vibration activée' : 'Vibration désactivée');
+}
+ 
+// ---- Qualité d'envoi des photos ----
+window.saveUploadQuality = function() {
+  localStorage.setItem('uploadQuality', document.getElementById('upload-quality-select').value);
+  showMsg('🖼️ Qualité d\'envoi enregistrée !');
+}
+ 
+// ---- Historique des discussions ----
+async function getMyConversations() {
+  const snap = await getDocs(query(collection(db, 'conversations'), where('participants', 'array-contains', currentUser.uid)));
+  return snap.docs.map(d => ({ id: d.id, other: d.data().participants.find(p => p !== currentUser.uid) }));
+}
+ 
+window.toggleKeepArchived = function() {
+  const on = document.getElementById('keep-archived-toggle').checked;
+  localStorage.setItem('keepArchived', on);
+  showMsg(on ? '🗄️ Les discussions archivées le restent' : 'Une discussion archivée réapparaît à chaque nouveau message');
+}
+ 
+window.archiveAllChats = async function() {
+  try {
+    const convs = await getMyConversations();
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem('archivedConvs')) || []; } catch(e) {}
+    convs.forEach(c => { if (c.other && !list.includes(c.other)) list.push(c.other); });
+    localStorage.setItem('archivedConvs', JSON.stringify(list));
+    loadArchivedList();
+    showMsg('🗄️ Toutes les discussions sont archivées !');
+  } catch(e) {
+    showMsg('Erreur : ' + e.message, true);
+  }
+}
+ 
+window.clearAllChats = async function() {
+  if (!confirm('Vider toutes les discussions sur cet appareil ? Les messages restent chez tes contacts.')) return;
+  try {
+    const convs = await getMyConversations();
+    const now = String(Date.now());
+    convs.forEach(c => localStorage.setItem('clearedAt_' + c.id, now));
+    showMsg('🗑️ Toutes les discussions ont été vidées !');
+  } catch(e) {
+    showMsg('Erreur : ' + e.message, true);
+  }
+}
+ 
+// ---- Accessibilité ----
+window.toggleA11yContrast = function() {
+  localStorage.setItem('a11yContrast', document.getElementById('a11y-contrast-toggle').checked);
+  window.LM_applyA11y();
+}
+ 
+window.toggleA11yBold = function() {
+  localStorage.setItem('a11yBold', document.getElementById('a11y-bold-toggle').checked);
+  window.LM_applyA11y();
+}
+ 
+ 
+// ============ DYNAMISME & CONFORT ============
+ 
+window.savePref = function(key, value) {
+  localStorage.setItem(key, value);
+  window.LM_applyPrefs();
+  showMsg('✅ Réglage enregistré !');
+}
+ 
+window.liveBubbleRadius = function(value) {
+  document.getElementById('bubble-radius-value').textContent = value + 'px';
+  document.documentElement.style.setProperty('--bubble-radius', value + 'px');
+}
+ 
+function loadExperienceState() {
+  const g = (k, d) => { const v = localStorage.getItem(k); return v === null ? d : v; };
+  document.getElementById('dynamism-select').value = g('dynamism', 'soft');
+  document.getElementById('haptics-toggle').checked = g('haptics', 'true') !== 'false';
+  const radius = g('bubbleRadius', '12');
+  document.getElementById('bubble-radius-slider').value = radius;
+  document.getElementById('bubble-radius-value').textContent = radius + 'px';
+  document.getElementById('msg-font-select').value = g('msgFont', 'system');
+  document.getElementById('compact-toggle').checked = g('compact', 'false') === 'true';
+  document.getElementById('hide-badges-toggle').checked = g('hideBadges', 'false') === 'true';
+  document.getElementById('hide-preview-toggle').checked = g('hidePreview', 'false') === 'true';
+  document.getElementById('quiet-toggle').checked = g('quietHours', 'false') === 'true';
+  document.getElementById('quiet-start').value = g('quietStart', '22:00');
+  document.getElementById('quiet-end').value = g('quietEnd', '07:00');
+  document.getElementById('voice-speed-select').value = g('voiceSpeed', '1');
+  document.getElementById('auto-lock-select').value = g('autoLockDelay', 'never');
+}
+ 
+// ============ ADMINISTRATION ============
+ 
+async function checkAdminAccess() {
+  const uidEl = document.getElementById('my-uid');
+  if (uidEl) uidEl.textContent = currentUser.uid;
+  try {
+    const snap = await getDoc(doc(db, 'admins', currentUser.uid));
+    const entry = document.getElementById('admin-entry');
+    if (entry) entry.style.display = snap.exists() ? 'flex' : 'none';
+  } catch(e) { /* pas administrateur */ }
+}
+ 
+window.copyMyUid = async function() {
+  try {
+    await navigator.clipboard.writeText(currentUser.uid);
+    showMsg('📋 Identifiant copié !');
+  } catch(e) {
+    showMsg('Copie impossible : sélectionne et copie le texte.', true);
   }
 }
