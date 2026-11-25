@@ -83,7 +83,10 @@ const ICONS = {
   'stop': '<rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/>',
   'accessibility': '<circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v5M9 21l3-6 3 6"/>',
   'vibrate': '<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 8v8M20 8v8M2 10.5v3M22 10.5v3"/>',
-  'music': '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>'
+  'music': '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  'sparkles': '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/>',
+  'crown': '<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8z"/>',
+  'megaphone': '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/>'
 };
  
 // emoji (sans sélecteur de variation) -> nom d'icône
@@ -99,7 +102,7 @@ const EMOJI_MAP = {
   '➕': 'plus', '✕': 'x', '←': 'arrow-left', '›': 'chevron-right', '▾': 'chevron-down', '👁': 'eye',
   '🙈': 'eye-off', '🤖': 'bot', '📤': 'share', '🔗': 'link', '⚠': 'alert', '🔄': 'refresh', '🛠': 'tool',
   '🔤': 'type', '🌗': 'contrast', '⌨': 'keyboard', '⏱': 'timer', '⏹': 'stop', '♿': 'accessibility',
-  '📳': 'vibrate', '🎵': 'music', 'ℹ': 'info'
+  '📳': 'vibrate', '🎵': 'music', 'ℹ': 'info', '✨': 'sparkles', '👑': 'crown', '📢': 'megaphone'
 };
  
 const SVG_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">';
@@ -217,6 +220,24 @@ window.LM_applyA11y = function() {
   document.body.classList.toggle('a11y-bold', localStorage.getItem('a11yBold') === 'true');
 };
  
+window.LM_applyPrefs = function() {
+  const root = document.documentElement;
+  const dyn = localStorage.getItem('dynamism') || 'soft';
+  root.classList.toggle('dyn-off', dyn === 'off');
+  root.classList.toggle('dyn-intense', dyn === 'intense');
+  root.style.setProperty('--dyn', dyn === 'intense' ? '1.5' : '1');
+  root.style.setProperty('--bubble-radius', (localStorage.getItem('bubbleRadius') || '12') + 'px');
+  const fonts = {
+    system: "'Segoe UI', sans-serif",
+    rounded: "ui-rounded, 'Nunito', 'Trebuchet MS', sans-serif",
+    serif: "Georgia, 'Times New Roman', serif",
+    mono: "'Courier New', monospace"
+  };
+  root.style.setProperty('--msg-font-family', fonts[localStorage.getItem('msgFont') || 'system'] || fonts.system);
+  document.body.classList.toggle('compact', localStorage.getItem('compact') === 'true');
+  document.body.classList.toggle('hide-badges', localStorage.getItem('hideBadges') === 'true');
+};
+ 
 // ---------- 3. SONS & VIBRATION ----------
 window.LM_playTone = function(name) {
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -247,7 +268,18 @@ window.LM_playTone = function(name) {
   } catch(e) {}
 };
  
+function inQuietHours() {
+  if (localStorage.getItem('quietHours') !== 'true') return false;
+  const toMin = s => { const p = (s || '').split(':').map(Number); return p[0] * 60 + (p[1] || 0); };
+  const start = toMin(localStorage.getItem('quietStart') || '22:00');
+  const end = toMin(localStorage.getItem('quietEnd') || '07:00');
+  const now = new Date();
+  const cur = now.getHours() * 60 + now.getMinutes();
+  return start <= end ? (cur >= start && cur < end) : (cur >= start || cur < end);
+}
+ 
 window.LM_notify = function() {
+  if (inQuietHours()) return;
   if (localStorage.getItem('sound') !== 'false') {
     const tone = localStorage.getItem('notifTone') || 'cloche';
     if (tone !== 'none') window.LM_playTone(tone);
@@ -352,9 +384,33 @@ function showLockScreen() {
   });
 }
  
+// ---------- 6. RETOUR HAPTIQUE ----------
+document.addEventListener('pointerdown', e => {
+  if (localStorage.getItem('haptics') === 'false' || !navigator.vibrate) return;
+  if (e.target.closest && e.target.closest('button, .nav-btn, .conv-item, .settings-category-item, .toggle')) navigator.vibrate(6);
+}, { passive: true });
+ 
+// ---------- 7. VITESSE DES MESSAGES VOCAUX ----------
+document.addEventListener('play', e => {
+  if (e.target && e.target.tagName === 'AUDIO') e.target.playbackRate = Number(localStorage.getItem('voiceSpeed') || 1);
+}, true);
+ 
+// ---------- 8. VERROUILLAGE AUTOMATIQUE ----------
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { sessionStorage.setItem('lmHiddenAt', String(Date.now())); return; }
+  const delay = localStorage.getItem('autoLockDelay') || 'never';
+  const hiddenAt = Number(sessionStorage.getItem('lmHiddenAt') || 0);
+  if (delay === 'never' || !window.AppLock.isEnabled() || !hiddenAt) return;
+  if (Date.now() - hiddenAt >= Number(delay) && !document.getElementById('lm-lock')) {
+    sessionStorage.removeItem('appUnlocked');
+    showLockScreen();
+  }
+});
+ 
 // ---------- DÉMARRAGE ----------
 function boot() {
   window.LM_applyA11y();
+  window.LM_applyPrefs();
   startIcons();
   if (window.AppLock.isEnabled() && sessionStorage.getItem('appUnlocked') !== 'true') showLockScreen();
 }
