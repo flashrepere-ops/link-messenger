@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { collection, query, where, onSnapshot, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
  
 if (localStorage.getItem('darkMode') === 'true') {
   document.body.classList.add('dark-mode');
@@ -53,6 +53,17 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
   currentUser = user;
+ 
+  // Compte suspendu par l'administrateur
+  try {
+    const banned = await getDoc(doc(db, 'banned', user.uid));
+    if (banned.exists()) {
+      await signOut(auth);
+      alert("Ton compte a été suspendu par l'administrateur.");
+      window.location.href = 'index.html';
+      return;
+    }
+  } catch(e) { /* règles non publiées : on continue */ }
  
   const userSnap = await getDoc(doc(db, 'users', user.uid));
   if (userSnap.exists()) {
@@ -141,6 +152,7 @@ function renderConversations(convs) {
   let pinned = [];
   try { pinned = JSON.parse(localStorage.getItem('pinnedConvs')) || []; } catch(e) {}
  
+  const hidePreview = localStorage.getItem('hidePreview') === 'true';
   for (const c of convs) {
     const item = document.createElement('div');
     item.className = 'conv-item';
@@ -154,7 +166,7 @@ function renderConversations(convs) {
           <span class="conv-time">${timeAgo(c.updatedAt)}</span>
         </div>
         <div class="conv-bottom">
-          <span class="conv-last-msg">${c.lastMessage || 'Démarrer la discussion'}</span>
+          <span class="conv-last-msg">${hidePreview ? 'Message' : (c.lastMessage || 'Démarrer la discussion')}</span>
           ${unreadCount > 0 ? `<span class="badge">${unreadCount}</span>` : ''}
         </div>
       </div>
@@ -304,3 +316,32 @@ function loadConversations() {
     renderConversations(allConvs);
   });
 }
+ 
+ 
+// ============ ANNONCE DE L'ADMINISTRATEUR ============
+async function loadAnnouncement() {
+  try {
+    const snap = await getDocs(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(1)));
+    if (snap.empty) return;
+    const d = snap.docs[0];
+    if (localStorage.getItem('dismissedAnnouncement') === d.id) return;
+    const banner = document.createElement('div');
+    banner.className = 'announce-banner';
+    const body = document.createElement('div');
+    body.style.flex = '1';
+    const title = document.createElement('b');
+    title.textContent = '📢 Annonce';
+    const text = document.createElement('span');
+    text.textContent = d.data().text || '';
+    body.appendChild(title);
+    body.appendChild(text);
+    const close = document.createElement('button');
+    close.textContent = '✕';
+    close.onclick = () => { localStorage.setItem('dismissedAnnouncement', d.id); banner.remove(); };
+    banner.appendChild(body);
+    banner.appendChild(close);
+    const anchor = document.querySelector('.tabs-bar');
+    if (anchor) anchor.insertAdjacentElement('afterend', banner);
+  } catch(e) { /* collection absente ou règles non publiées */ }
+}
+loadAnnouncement();
