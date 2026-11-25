@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration - Link Messenger</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/favicon.ico">
+  <meta name="theme-color" content="#03201b">
+  <style>
+    .admin-wrap { max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 40px; }
+    .admin-tabs { display: flex; gap: 6px; padding: 10px 12px; overflow-x: auto; }
+    .admin-tabs::-webkit-scrollbar { display: none; }
+    .admin-tab { flex-shrink: 0; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-main); font-size: 13px; font-weight: 600; cursor: pointer; }
+    .admin-tab.active { background: var(--accent-color); border-color: transparent; color: #fff; }
+    .admin-panel { display: none; padding: 4px 12px 20px; }
+    .admin-panel.active { display: block; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-tile { padding: 16px; border-radius: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+    .stat-num { font-size: 30px; font-weight: 800; color: #fff; }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .admin-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px; border-radius: 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); }
+    .admin-row-info { flex: 1; min-width: 0; }
+    .admin-row-title { font-size: 14px; font-weight: 600; color: var(--text-main); }
+    .admin-row-sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-btn { padding: 7px 11px; border-radius: 10px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,.16); color: #fff; }
+    .admin-btn.danger { background: rgba(241,92,109,.85); }
+    .admin-btn.ok { background: var(--accent-color); }
+    .tag-banned { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(241,92,109,.85); font-size: 10px; color: #fff; }
+    .admin-thumb { width: 46px; height: 46px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: rgba(255,255,255,.1); }
+    .admin-denied { text-align: center; padding: 40px 20px; }
+    .admin-denied code { display: block; margin: 14px 0; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.12); word-break: break-all; font-size: 12px; user-select: all; }
+    .admin-denied ol { text-align: left; font-size: 13px; line-height: 1.7; color: var(--text-muted); padding-left: 20px; }
+    textarea.admin-text { width: 100%; min-height: 90px; padding: 12px; border-radius: 14px; font-family: inherit; font-size: 14px; resize: vertical; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+ 
+<div class="admin-wrap">
+ 
+  <div class="settings-header">
+    <button class="back-btn" onclick="window.location.href='settings.html'">←</button>
+    <span>👑 Administration</span>
+  </div>
+ 
+  <!-- Accès refusé -->
+  <div id="admin-denied" class="admin-denied" style="display:none"></div>
+ 
+  <!-- Chargement -->
+  <div id="admin-loading" class="loading"><div class="spinner"></div><p>Vérification...</p></div>
+ 
+  <!-- Contenu -->
+  <div id="admin-content" style="display:none">
+ 
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="dash" onclick="showTab('dash')">📊 Tableau de bord</button>
+      <button class="admin-tab" data-tab="users" onclick="showTab('users')">👥 Utilisateurs</button>
+      <button class="admin-tab" data-tab="news" onclick="showTab('news')">📢 Annonces</button>
+      <button class="admin-tab" data-tab="statuses" onclick="showTab('statuses')">🔵 Statuts</button>
+    </div>
+ 
+    <!-- Tableau de bord -->
+    <div class="admin-panel active" id="panel-dash">
+      <div class="stat-grid" id="stat-grid"></div>
+      <button class="settings-btn" style="margin-top:14px;width:100%" onclick="loadDashboard()">🔄 Actualiser</button>
+    </div>
+ 
+    <!-- Utilisateurs -->
+    <div class="admin-panel" id="panel-users">
+      <input type="text" id="user-search" placeholder="Rechercher un nom ou un email..." oninput="renderUsers()" style="margin-bottom:12px" />
+      <div id="users-list"></div>
+    </div>
+ 
+    <!-- Annonces -->
+    <div class="admin-panel" id="panel-news">
+      <textarea id="news-text" class="admin-text" placeholder="Message envoyé à tous les utilisateurs..."></textarea>
+      <button class="settings-btn" style="width:100%;margin-bottom:16px" onclick="publishAnnouncement()">📢 Publier l'annonce</button>
+      <div id="news-list"></div>
+    </div>
+ 
+    <!-- Statuts -->
+    <div class="admin-panel" id="panel-statuses">
+      <div id="statuses-list"></div>
+    </div>
+ 
+  </div>
+ 
+  <div id="settings-msg" class="settings-msg"></div>
+ 
+</div>
+ 
+<script type="module" src="ui.js"></script>
+<script type="module" src="admin.js"></script>
+</body>
+</html>
