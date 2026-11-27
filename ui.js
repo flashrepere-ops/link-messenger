@@ -86,7 +86,8 @@ const ICONS = {
   'music': '<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
   'sparkles': '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/>',
   'crown': '<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5L3 8z"/>',
-  'megaphone': '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/>'
+  'megaphone': '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8.5a5 5 0 0 1 0 7M18 6a9 9 0 0 1 0 12"/>',
+  'wallet': '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16 14.5h2"/>'
 };
  
 // emoji (sans sélecteur de variation) -> nom d'icône
@@ -102,7 +103,7 @@ const EMOJI_MAP = {
   '➕': 'plus', '✕': 'x', '←': 'arrow-left', '›': 'chevron-right', '▾': 'chevron-down', '👁': 'eye',
   '🙈': 'eye-off', '🤖': 'bot', '📤': 'share', '🔗': 'link', '⚠': 'alert', '🔄': 'refresh', '🛠': 'tool',
   '🔤': 'type', '🌗': 'contrast', '⌨': 'keyboard', '⏱': 'timer', '⏹': 'stop', '♿': 'accessibility',
-  '📳': 'vibrate', '🎵': 'music', 'ℹ': 'info', '✨': 'sparkles', '👑': 'crown', '📢': 'megaphone'
+  '📳': 'vibrate', '🎵': 'music', 'ℹ': 'info', '✨': 'sparkles', '👑': 'crown', '📢': 'megaphone', '💳': 'wallet'
 };
  
 const SVG_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">';

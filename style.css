@@ -2520,3 +2520,204 @@ body.dark-mode .glass-field input[type="password"] {
   cursor: pointer;
 }
  
+/* =====================================================
+   DYNAMISME : mouvement fluide inspiré de iOS « Liquid Glass »
+   ===================================================== */
+:root {
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --ease-ios: cubic-bezier(.32, .72, 0, 1);
+  --dyn: 1;
+  --bubble-radius: 12px;
+  --msg-font-family: 'Segoe UI', sans-serif;
+}
+ 
+/* Transition entre les pages (navigateurs récents) */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: lmVtOut calc(.28s * var(--dyn)) var(--ease-ios) both; }
+::view-transition-new(root) { animation: lmVtIn calc(.4s * var(--dyn)) var(--ease-ios) both; }
+@keyframes lmVtOut { to { opacity: 0; transform: translateX(-10px) scale(.975); } }
+@keyframes lmVtIn { from { opacity: 0; transform: translateX(24px) scale(.985); } }
+html.dyn-off::view-transition-group(*),
+html.dyn-off::view-transition-old(*),
+html.dyn-off::view-transition-new(*) { animation: none !important; }
+ 
+/* Aurore vivante en arrière-plan */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(52,211,153,.34), transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(20,184,166,.28), transparent 38%),
+    radial-gradient(circle at 60% 85%, rgba(16,185,129,.26), transparent 42%);
+  filter: blur(30px);
+  animation: lmAurora calc(26s / var(--dyn)) ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes lmAurora {
+  from { transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1); }
+  to { transform: translate3d(4%, 3%, 0) rotate(8deg) scale(1.12); }
+}
+html.dyn-off body::before { animation: none; }
+ 
+/* Réaction au toucher avec effet de ressort */
+ 
+body :is(button, .nav-btn, .settings-category-item, .conv-item, .status-item, .directory-item),
+body.dark-mode :is(button, .nav-btn, .settings-category-item, .conv-item, .status-item, .directory-item) {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .4s var(--spring), background-color .2s ease, opacity .2s ease, color .2s ease, box-shadow .2s ease;
+}
+ 
+body :is(button, .settings-category-item, .conv-item, .status-item, .directory-item):active,
+body.dark-mode :is(button, .settings-category-item, .conv-item, .status-item, .directory-item):active {
+  transform: scale(.96);
+  transition-duration: .12s;
+}
+html.dyn-off body :is(button, .settings-category-item, .conv-item, .status-item, .directory-item):active { transform: none; }
+ 
+/* Verre liquide : flou plus profond et reflet sur le bord */
+body .settings-section,
+body.dark-mode .settings-section,
+body .settings-categories,
+body.dark-mode .settings-categories,
+body .accordion-section,
+body.dark-mode .accordion-section,
+body .settings-profile,
+body.dark-mode .settings-profile,
+body .modal-box,
+body.dark-mode .modal-box,
+body .directory-box,
+body.dark-mode .directory-box,
+body .attach-panel,
+body.dark-mode .attach-panel,
+body .glass-card,
+body.dark-mode .glass-card,
+body .user-result,
+body.dark-mode .user-result,
+body .chat-mini-menu,
+body.dark-mode .chat-mini-menu,
+body .announce-banner,
+body.dark-mode .announce-banner {
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  backdrop-filter: blur(26px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.38), inset 0 -1px 0 rgba(255,255,255,.06), 0 10px 32px rgba(0,0,0,.28);
+}
+ 
+ 
+/* Barre du bas flottante en forme de pastille */
+body .bottom-nav,
+body.dark-mode .bottom-nav {
+  bottom: 12px;
+  width: calc(100% - 24px);
+  max-width: 456px;
+  border: 1px solid var(--glass-border);
+  border-radius: 30px;
+  padding: 4px 6px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 12px 36px rgba(0,0,0,.4);
+}
+body .nav-btn.active,
+body.dark-mode .nav-btn.active {
+  background: rgba(255,255,255,.14);
+  border-radius: 22px;
+}
+.fab { bottom: 96px; }
+.conversations { padding-bottom: 96px; }
+ 
+ 
+/* Bulles : apparition à ressort uniquement pour le dernier message */
+body .message,
+body.dark-mode .message { animation: none; }
+.messages-container .message:last-child { animation: lmBubble calc(.45s * var(--dyn)) var(--spring) both; }
+@keyframes lmBubble { from { opacity: 0; transform: scale(.85) translateY(10px); } to { opacity: 1; transform: none; } }
+html.dyn-off .messages-container .message:last-child { animation: none; }
+ 
+body .message.mine, body.dark-mode .message.mine { border-radius: var(--bubble-radius) 3px var(--bubble-radius) var(--bubble-radius); }
+body .message.theirs, body.dark-mode .message.theirs { border-radius: 3px var(--bubble-radius) var(--bubble-radius) var(--bubble-radius); }
+body .msg-text { font-family: var(--msg-font-family); }
+ 
+body.compact .message { padding: 4px 9px 6px; }
+body.compact .messages-container { gap: 2px; }
+body.compact .conv-item { padding-top: 8px; padding-bottom: 8px; }
+body.hide-badges .badge { display: none; }
+ 
+/* Feuilles et fenêtres : entrée en douceur */
+.modal-box { animation: lmSheet calc(.5s * var(--dyn)) var(--spring) both; }
+.directory-box, .attach-panel { animation: lmSheetUp calc(.5s * var(--dyn)) var(--ease-ios) both; }
+.settings-subview { animation: lmSlideIn calc(.42s * var(--dyn)) var(--ease-ios) both; }
+@keyframes lmSheet { from { opacity: 0; transform: translateY(24px) scale(.95); } to { opacity: 1; transform: none; } }
+@keyframes lmSheetUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+@keyframes lmSlideIn { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+html.dyn-off .modal-box, html.dyn-off .directory-box, html.dyn-off .attach-panel, html.dyn-off .settings-subview { animation: none; }
+ 
+/* Interrupteurs façon iOS */
+ 
+body .toggle,
+body.dark-mode .toggle { width: 51px; height: 31px; }
+ 
+body .slider,
+body.dark-mode .slider { border-radius: 31px; background: rgba(120,120,128,.4); transition: background .3s ease; }
+ 
+body .slider:before,
+body.dark-mode .slider:before { width: 27px; height: 27px; left: 2px; bottom: 2px; box-shadow: 0 3px 8px rgba(0,0,0,.3); transition: transform .4s var(--spring), width .2s ease; }
+ 
+body .toggle:active .slider:before,
+body.dark-mode .toggle:active .slider:before { width: 33px; }
+ 
+body input:checked + .slider,
+body.dark-mode input:checked + .slider { background: var(--accent-color); }
+ 
+body input:checked + .slider:before,
+body.dark-mode input:checked + .slider:before { transform: translateX(20px); }
+ 
+body .toggle:active input:checked + .slider:before,
+body.dark-mode .toggle:active input:checked + .slider:before { transform: translateX(14px); }
+ 
+ 
+/* Messages d'état en pastille flottante (comme la Dynamic Island) */
+.settings-msg:not(:empty) {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5000;
+  max-width: calc(100% - 32px);
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: rgba(8,40,33,.85);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  animation: lmIsland calc(.55s * var(--dyn)) var(--spring) both;
+}
+@keyframes lmIsland { from { opacity: 0; transform: translate(-50%, -26px) scale(.8); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+ 
+/* Annonce de l'administrateur */
+.announce-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(52,211,153,.28), rgba(20,184,166,.18));
+  border: 1px solid var(--glass-border);
+  animation: lmSheet calc(.5s * var(--dyn)) var(--spring) both;
+}
+.announce-banner b { display: block; font-size: 13px; margin-bottom: 3px; }
+.announce-banner button { background: none; border: none; color: #fff; font-size: 16px; cursor: pointer; opacity: .8; }
+ 
+/* Pas d'animation en économie d'énergie */
+body.power-saver::before { animation: none !important; }
+ 
+ 
+/* Carte de recommandation croisée Link <-> NOVA */
+.promo-card { flex-direction: column; align-items: stretch; }
+.promo-actions { display: flex; gap: 8px; margin-top: 10px; }
+.promo-btn { padding: 8px 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-bg-strong); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+.promo-btn.promo-primary { background: var(--accent-color); border-color: transparent; }

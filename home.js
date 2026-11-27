@@ -1,4 +1,5 @@
 import { auth, db } from './firebase-config.js';
+import { maybeShowNovaCard } from './crosspromo.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
  
@@ -345,3 +346,4 @@ async function loadAnnouncement() {
   } catch(e) { /* collection absente ou règles non publiées */ }
 }
 loadAnnouncement();
+maybeShowNovaCard();

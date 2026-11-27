@@ -1,6 +1,7 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { watchWallet, formatFCFA } from './wallet.js';
  
 let currentUser = null;
 let currentUserData = null;
@@ -33,6 +34,7 @@ onAuthStateChanged(auth, async (user) => {
   }
   loadSettings();
   checkAdminAccess();
+  startWalletWatch();
 });
  
 function loadProfile() {
@@ -1005,4 +1007,16 @@ window.copyMyUid = async function() {
   } catch(e) {
     showMsg('Copie impossible : sélectionne et copie le texte.', true);
   }
+}
+ 
+ 
+// ============ LINK PAY (portefeuille partagé avec NOVA) ============
+ 
+let walletUnsub = null;
+function startWalletWatch() {
+  if (walletUnsub) walletUnsub();
+  walletUnsub = watchWallet(currentUser.uid, w => {
+    const el = document.getElementById('wallet-balance');
+    if (el) el.textContent = 'Solde de test : ' + formatFCFA(w.balance);
+  });
 }
